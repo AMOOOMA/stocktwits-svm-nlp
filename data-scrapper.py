@@ -12,7 +12,7 @@ def parse_json(json_data):
     return 0
 
 
-def make_dict_from_list(post_list):
+def make_dict_from_list(message_list):
     # return a dict of the string list
     # the string list will follow the format of parse_json()
     # the dict should be like {label} : {array of messages}
@@ -49,13 +49,26 @@ class DataScrapper:
         # https://api.stocktwits.com/developers/docs/api#streams-symbol-docs
         return 0
 
-    def _populate_data(self, post_list):
+    def _read_from_csv(self):
+        # read the csv file from local machine
+        # then populate the self.data variable
+        # the csv file will follow the format {label} , {message}
+        # https://realpython.com/python-csv/
+        self.data = []
+
+    def _write_to_csv(self):
+        # write the data in self to a local csv file
+        # the csv file should follow the format {label} , {message}
+        # https://realpython.com/python-csv/
+        self.data = []  # remove this line
+
+    def _populate_data(self, message_list):
         # populate the data var in self
         # the data should be a dictionary of entries, and you should use
         # make_dict_from_list(post_list) function to get the dict
         # the dict should be like {label} : {array of messages}
         # Note: this should not add duplicate messages
-        self.data = []  # remove this
+        self.data = []  # remove this line
 
     def _data_cleaning(self):
         # TO DO, clean the data in self

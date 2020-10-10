@@ -4,10 +4,10 @@ import csv
 import sys
 
 
-def parse_json(json_data):
-    # return the list of variables in the json data with body, in strings
+def parse_messages_json(json_data):
+    # return the list of messages from the json data
     # should parse the json file into format like below
-    # {variable name} : {body}
+    # {label} : {messages body}
     # example: "label : this is a message"
     # some docs: https://docs.python.org/3/library/json.html
     return 0
@@ -79,13 +79,11 @@ class DataScrapper:
                 if response.status_code == 200:
                     print("GET messages/posts success")
                     json_data = json.loads(response.content)
-                    for message in json_data['messages']:
-                        break  # remove this line
-                        # Should call parse_json func to parse in messages
+                    messages = parse_messages_json(json_data)
                 else:
                     print(f"GET request from messages failed: {response.status_code} {response.reason}")
 
-        return None
+        return messages  # return empty list if symbols is None
 
     def _read_from_csv(self):
         # read the csv file from local machine

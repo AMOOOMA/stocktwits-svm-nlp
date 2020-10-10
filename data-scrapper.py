@@ -9,7 +9,7 @@ def parse_messages_json(json_data):
     # should parse the json file into format like below
     # {label} : {messages body}
     # example: "label : this is a message"
-    # some docs: https://docs.python.org/3/library/json.html
+    # Note: for data with no labels, put "NO_LABEL"
     return 0
 
 
@@ -60,7 +60,8 @@ class DataScrapper:
 
         return None
 
-    def _get_messages_from_symbol(self, symbol):
+    @staticmethod
+    def _get_messages_from_symbol(symbols):
         # return a list of posts, in string format {sentiment label} : {body}
         # should removes everything except body and the sentiment label
         # some docs: https://realpython.com/python-requests/#the-get-request
@@ -71,7 +72,6 @@ class DataScrapper:
             'referer': 'https://google.com',
         }
 
-        symbols = self._get_trending_symbols()
         messages = []
         if symbols is not None:
             for symbol in symbols:
@@ -114,6 +114,7 @@ class DataScrapper:
 
     def run(self):
         symbols = self._get_trending_symbols()
+        self._get_messages_from_symbol(symbols)
         print(symbols)
         # TO DO
 

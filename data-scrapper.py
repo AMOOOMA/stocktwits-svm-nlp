@@ -60,7 +60,7 @@ class DataScrapper:
 
         return None
 
-    def _get_posts_from_symbol(self, symbol):
+    def _get_messages_from_symbol(self, symbol):
         # return a list of posts, in string format {sentiment label} : {body}
         # should removes everything except body and the sentiment label
         # some docs: https://realpython.com/python-requests/#the-get-request
@@ -72,14 +72,16 @@ class DataScrapper:
         }
 
         symbols = self._get_trending_symbols()
-        posts = []
+        messages = []
         if symbols is not None:
             for symbol in symbols:
                 response = requests.get(api_url + f"{symbol}.json", headers)
                 if response.status_code == 200:
                     print("GET messages/posts success")
                     json_data = json.loads(response.content)
-                    # TO DO
+                    for message in json_data['messages']:
+                        break  # remove this line
+                        # Should call parse_json func to parse in messages
                 else:
                     print(f"GET request from messages failed: {response.status_code} {response.reason}")
 

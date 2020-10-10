@@ -32,7 +32,7 @@ class DataScrapper:
         # returns the auth token, -1 when failed
         # Some helpful articles and docs:
         # https://api.stocktwits.com/developers/docs/api#oauth-token-docs
-        return 0
+        return None
 
     @staticmethod
     def _get_trending_symbols():
@@ -40,15 +40,50 @@ class DataScrapper:
         # make a get request and get the list of trending symbols
         # some docs: https://realpython.com/python-requests/#the-get-request
         # https://api.stocktwits.com/developers/docs/api#trending-symbols-docs
-        return 0
+        api_url = "https://api.stocktwits.com/api/2/trending/symbols.json"
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36',
+            'referer': 'https://google.com',
+        }
 
-    @staticmethod
-    def _get_posts_from_symbol(symbol):
+        response = requests.get(api_url, headers)
+        if response.status_code == 200:
+            print("GET trending symbols success.")
+            json_data = json.loads(response.content)
+            symbols_list = []
+            for symbol in json_data['symbols']:
+                symbols_list.append(symbol['symbol'])  # only parse in the stock trading symbol
+
+            return symbols_list
+        else:
+            print(f"GET list of trending symbols request failed: {response.status_code} {response.reason}")
+
+        return None
+
+    def _get_posts_from_symbol(self, symbol):
         # return a list of posts, in string format {sentiment label} : {body}
         # should removes everything except body and the sentiment label
         # some docs: https://realpython.com/python-requests/#the-get-request
         # https://api.stocktwits.com/developers/docs/api#streams-symbol-docs
-        return 0
+        api_url = "https://api.stocktwits.com/api/2/streams/symbol/"  # + {id}.json
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36',
+            'referer': 'https://google.com',
+        }
+
+        symbols = self._get_trending_symbols()
+        posts = []
+        if symbols is not None:
+            for symbol in symbols:
+                response = requests.get(api_url + f"{symbol}.json", headers)
+                if response.status_code == 200:
+                    print("GET messages/posts success")
+                    json_data = json.loads(response.content)
+                    # TO DO
+                else:
+                    print(f"GET request from messages failed: {response.status_code} {response.reason}")
+
+        return None
 
     def _read_from_csv(self):
         # read the csv file from local machine
@@ -77,6 +112,11 @@ class DataScrapper:
         self.data = []
         return 0
 
+    def run(self):
+        symbols = self._get_trending_symbols()
+        print(symbols)
+        # TO DO
+
 
 def main():
     auth_username = "cs490a"  # default username
@@ -87,6 +127,7 @@ def main():
         auth_passwd = args[2]
 
     scrapper = DataScrapper(auth_username, auth_passwd)
+    scrapper.run()
 
 
 if __name__ == "__main__":

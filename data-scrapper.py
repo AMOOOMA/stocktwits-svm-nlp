@@ -126,9 +126,8 @@ class DataScrapper:
 
     def _populate_data(self, message_list):
         # populate the data var in self
-        # the data should be a dictionary of entries, and you should use
-        # make_dict_from_list(post_list) function to get the dict
-        # the dict should be like {label} : {array of messages}
+        # the data (message_list) should be a dictionary of entries
+        # the dictionary's format is {label} : {array of messages}
         # Note: this should not add duplicate messages
         self.data = []  # remove this line
 

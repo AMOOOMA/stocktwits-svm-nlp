@@ -12,16 +12,17 @@ def parse_messages_json(json_data):
     # some docs: https://docs.python.org/3/library/json.html
     # Note: for data with no labels, put "NO_LABEL"
     dict_data = json.loads(json_data)
+    messages_list = []
     for e in dict_data["messages"]:
         if e["entities"]["sentiment"] is None:
-            dict_data.append({"NO_LABEL": e["body"]})
+            messages_list.append({"NO_LABEL": e["body"]})
         else:
-            dict_data.append({e["entities"]["sentiment"]["basic"]: e["body"]})
+            messages_list.append({e["entities"]["sentiment"]["basic"]: e["body"]})
 
-    return dict_data
+    return messages_list
 
 
-def make_dict_from_list(message_list):
+def make_dict_from_list(messages_list):
     # return a dict of the string list
     # the string list will follow the format of parse_json()
     # the dict should be like {label} : {array of messages}
@@ -30,17 +31,18 @@ def make_dict_from_list(message_list):
     bullish_list = []
     bearish_list = []
 
-    for label, message in message_list.items():
+    for item in messages_list:
+        label, message = list(item.items())[0]
         if label == "NO_LABEL":
             NO_LABEL_list.append(message)
-        elif label == "bearish":
+        elif label == "Bearish":
             bearish_list.append(message)
-        elif label == "bullish":
+        elif label == "Bullish":
             bullish_list.append(message)
 
     label_dict["NO_LABEL"] = NO_LABEL_list
-    label_dict["bearish"] = bearish_list
-    label_dict["bullish"] = bullish_list
+    label_dict["Bearish"] = bearish_list
+    label_dict["Bullish"] = bullish_list
 
     return label_dict
 
@@ -103,8 +105,7 @@ class DataScrapper:
                 response = requests.get(api_url + f"{symbol}.json", headers)
                 if response.status_code == 200:
                     print("GET messages/posts success")
-                    json_data = json.loads(response.content)
-                    messages = parse_messages_json(json_data)
+                    messages = messages + parse_messages_json(response.content)
                 else:
                     print(f"GET request from messages failed: {response.status_code} {response.reason}")
 
@@ -139,8 +140,8 @@ class DataScrapper:
 
     def run(self):
         symbols = self._get_trending_symbols()
-        self._get_messages_from_symbol(symbols)
-        print(symbols)
+        messages = self._get_messages_from_symbol(symbols)
+        print(make_dict_from_list(messages))
         # TO DO
 
 

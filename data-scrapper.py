@@ -9,15 +9,41 @@ def parse_messages_json(json_data):
     # should parse the json file into format like below
     # {label} : {messages body}
     # example: "label : this is a message"
+    # some docs: https://docs.python.org/3/library/json.html
     # Note: for data with no labels, put "NO_LABEL"
-    return 0
-
+    dict_data = json.loads(json_data)
+    for e in dict_data["messages"]:
+        if e["entities"]["sentiment"] is None:
+            dict_data.append({"NO_LABEL": e["body"]})
+        else:
+            dict_data.append({e["entities"]["sentiment"]["basic"]: e["body"]})
+    
+    return dict_data
+    
+    
 
 def make_dict_from_list(message_list):
     # return a dict of the string list
     # the string list will follow the format of parse_json()
     # the dict should be like {label} : {array of messages}
-    return 0
+    label_dict = {}
+    NO_LABEL_list = []
+    bullish_list = []
+    bearish_list = []
+
+    for label, message in messages_list.items():
+        if label == "NO_LABEL":
+            NO_LABEL_list.append(message)
+        elif label == "bearish":
+            bearish_list.append(message)
+        elif label == "bullish":
+            bullish_list.append(message)
+
+    label_dict["NO_LABEL"] = NO_LABEL_list
+    label_dict["bearish"] = bearish_list
+    label_dict["bullish"] = bullish_list
+
+    return label_dict
 
 
 class DataScrapper:

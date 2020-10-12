@@ -13,7 +13,7 @@ def parse_messages_json(json_data):
     # Note: for data with no labels, put "NO_LABEL"
     dict_data = json.loads(json_data)
     for e in dict_data["messages"]:
-        if e["entities"]["sentiment"] == None:
+        if e["entities"]["sentiment"] is None:
             dict_data.append({"NO_LABEL": e["body"]})
         else:
             dict_data.append({e["entities"]["sentiment"]["basic"]: e["body"]})

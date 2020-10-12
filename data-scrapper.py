@@ -10,13 +10,18 @@ def parse_json(json_data):
     # {variable name} : {body}
     # example: "label : this is a message"
     # some docs: https://docs.python.org/3/library/json.html
-    return 0
+    variables = json.loads(json_data)
+    list_of_var = []
+    for var, data in variables.items():
+        list_of_var.append((var, data))
 
+    return list_of_var
 
 def make_dict_from_list(message_list):
     # return a dict of the string list
     # the string list will follow the format of parse_json()
     # the dict should be like {label} : {array of messages}
+
     return 0
 
 

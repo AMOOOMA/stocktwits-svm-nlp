@@ -17,10 +17,9 @@ def parse_messages_json(json_data):
             dict_data.append({"NO_LABEL": e["body"]})
         else:
             dict_data.append({e["entities"]["sentiment"]["basic"]: e["body"]})
-    
+
     return dict_data
-    
-    
+
 
 def make_dict_from_list(message_list):
     # return a dict of the string list
@@ -31,7 +30,7 @@ def make_dict_from_list(message_list):
     bullish_list = []
     bearish_list = []
 
-    for label, message in messages_list.items():
+    for label, message in message_list.items():
         if label == "NO_LABEL":
             NO_LABEL_list.append(message)
         elif label == "bearish":

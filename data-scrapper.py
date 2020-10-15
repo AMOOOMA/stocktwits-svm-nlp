@@ -2,6 +2,13 @@ import requests
 import json
 import csv
 import sys
+from enum import Enum
+
+
+class Label(Enum):
+    NO_LABEL = "NO_LABEL"
+    NEG_LABEL = "Bearish"
+    POS_LABEL = "Bullish"
 
 
 def parse_messages_json(json_data):
@@ -11,13 +18,13 @@ def parse_messages_json(json_data):
     # {label} : {messages body}
     # example: "label : this is a message"
     # some docs: https://docs.python.org/3/library/json.html
-    # Note: for data with no labels, put "NO_LABEL"
+    # Note: for data with no Label, put "NO_LABEL"
     """
     dict_data = json.loads(json_data)
     messages_list = []
     for e in dict_data["messages"]:
         if e["entities"]["sentiment"] is None:
-            messages_list.append({"NO_LABEL": e["body"]})
+            messages_list.append({Label.NO_LABEL: e["body"]})
         else:
             messages_list.append({e["entities"]["sentiment"]["basic"]: e["body"]})
 
@@ -37,16 +44,16 @@ def make_dict_from_list(messages_list):
 
     for item in messages_list:
         label, message = list(item.items())[0]
-        if label == "NO_LABEL":
+        if label == Label.NO_LABEL:
             NO_LABEL_list.append(message)
-        elif label == "Bearish":
+        elif label == Label.NEG_LABEL.value:
             bearish_list.append(message)
-        elif label == "Bullish":
+        elif label == Label.POS_LABEL.value:
             bullish_list.append(message)
 
-    label_dict["NO_LABEL"] = NO_LABEL_list
-    label_dict["Bearish"] = bearish_list
-    label_dict["Bullish"] = bullish_list
+    label_dict[Label.NO_LABEL] = NO_LABEL_list
+    label_dict[Label.NEG_LABEL] = bearish_list
+    label_dict[Label.POS_LABEL] = bullish_list
 
     return label_dict
 
@@ -56,7 +63,11 @@ class DataScrapper:
     def __init__(self, auth_username, auth_passwd):
         self.auth_username = auth_username
         self.auth_passwd = auth_passwd
-        self.data = None
+        self.data = {
+            Label.NO_LABEL: [],
+            Label.NEG_LABEL: [],
+            Label.POS_LABEL: [],
+        }
 
     @staticmethod
     def _get_auth_token():  # can be used to add auth stuff but ignore for now
@@ -165,8 +176,8 @@ class DataScrapper:
     def run(self):
         symbols = self._get_trending_symbols()
         messages = self._get_messages_from_symbol(symbols)
-        print(make_dict_from_list(messages))
-        # TO DO
+        self._populate_data(make_dict_from_list(messages))
+        print(self.data)
 
 
 def main():

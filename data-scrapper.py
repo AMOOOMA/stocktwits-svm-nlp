@@ -5,12 +5,14 @@ import sys
 
 
 def parse_messages_json(json_data):
+    """
     # return the list of messages from the json data
     # should parse the json file into format like below
     # {label} : {messages body}
     # example: "label : this is a message"
     # some docs: https://docs.python.org/3/library/json.html
     # Note: for data with no labels, put "NO_LABEL"
+    """
     dict_data = json.loads(json_data)
     messages_list = []
     for e in dict_data["messages"]:
@@ -23,9 +25,11 @@ def parse_messages_json(json_data):
 
 
 def make_dict_from_list(messages_list):
+    """
     # return a dict of the string list
     # the string list will follow the format of parse_json()
     # the dict should be like {label} : {array of messages}
+    """
     label_dict = {}
     NO_LABEL_list = []
     bullish_list = []
@@ -56,17 +60,21 @@ class DataScrapper:
 
     @staticmethod
     def _get_auth_token():  # can be used to add auth stuff but ignore for now
+        """
         # returns the auth token, -1 when failed
         # Some helpful articles and docs:
         # https://api.stocktwits.com/developers/docs/api#oauth-token-docs
+        """
         return None
 
     @staticmethod
     def _get_trending_symbols():
+        """
         # returns a list of symbols, in string formats
         # make a get request and get the list of trending symbols
         # some docs: https://realpython.com/python-requests/#the-get-request
         # https://api.stocktwits.com/developers/docs/api#trending-symbols-docs
+        """
         api_url = "https://api.stocktwits.com/api/2/trending/symbols.json"
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36',
@@ -89,10 +97,12 @@ class DataScrapper:
 
     @staticmethod
     def _get_messages_from_symbol(symbols):
+        """
         # return a list of posts, in string format {sentiment label} : {body}
         # should removes everything except body and the sentiment label
         # some docs: https://realpython.com/python-requests/#the-get-request
         # https://api.stocktwits.com/developers/docs/api#streams-symbol-docs
+        """
         api_url = "https://api.stocktwits.com/api/2/streams/symbol/"  # + {id}.json
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36',
@@ -112,30 +122,45 @@ class DataScrapper:
         return messages  # return empty list if symbols is None
 
     def _read_from_csv(self):
+        """
         # read the csv file from local machine
         # then populate the self.data variable
         # the csv file will follow the format {label} , {message}
         # https://realpython.com/python-csv/
+        """
         self.data = []
 
     def _write_to_csv(self):
+        """"
         # write the data in self to a local csv file
         # the csv file should follow the format {label} , {message}
         # https://realpython.com/python-csv/
+        """
         self.data = []  # remove this line
 
     def _populate_data(self, message_list):
+        """
         # populate the data var in self
         # the data (message_list) should be a dictionary of entries
         # the dictionary's format is {label} : {array of messages}
-        # Note: this should not add duplicate messages
-        self.data = []  # remove this line
+        # Note: this will not add duplicate messages
+        """
+        cleaned_messages = self._data_cleaning(message_list)
+        for label in cleaned_messages.keys():
+            # extend the messages list with new messages
+            self.data[label].extend(cleaned_messages[label])
 
-    def _data_cleaning(self):
-        # TO DO, clean the data in self
-        # only return status code, 0 = failed, 1 = success
-        self.data = []
-        return 0
+    def _data_cleaning(self, message_list):
+        """
+        # clean the data in message_list
+        # remove duplicated messages
+        # returns the filtered message_list
+        """
+        for label in message_list.keys():
+            # filter out duplicated messages
+            message_list[label] = filter(lambda message: message not in self.data[label], message_list[label])
+
+        return message_list
 
     def run(self):
         symbols = self._get_trending_symbols()
@@ -146,7 +171,7 @@ class DataScrapper:
 
 def main():
     auth_username = "cs490a"  # default username
-    auth_passwd = "fZ?TCqik92x9pE3"  # default passwd
+    auth_passwd = "fZ?T-----9pE3"  # default passwd, not provided for now
     args = sys.argv
     if len(args) > 1:
         auth_username = args[1]

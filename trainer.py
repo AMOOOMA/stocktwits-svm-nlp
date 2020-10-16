@@ -10,6 +10,16 @@ from sklearn.feature_extraction import DictVectorizer
 from nltk.stem import SnowballStemmer
 
 
+def tokenize(message):
+    tokens = []
+    return tokens
+
+
+def process_tokens(tokens):
+    tokens = map(lambda x: x, tokens)
+    return tokens
+
+
 class Trainer:
 
     def __init__(self, data):
@@ -37,6 +47,7 @@ def main():
         for row in reader:
             if row[0] != "Data entries":
                 class_dict[row[1]].append(row[0])
+
 
 if __name__ == "__main__":
     # execute only if run as a script

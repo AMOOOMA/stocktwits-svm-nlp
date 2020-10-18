@@ -2,6 +2,7 @@ import requests
 import json
 import csv
 import sys
+import os
 from enum import Enum
 
 
@@ -132,22 +133,41 @@ class DataScrapper:
 
         return messages  # return empty list if symbols is None
 
-    def _read_from_csv(self):
+    def _read_from_csv(self, path):
         """
         # read the csv file from local machine
         # then populate the self.data variable
         # the csv file will follow the format {label} , {message}
         # https://realpython.com/python-csv/
         """
-        self.data = []
-
-    def _write_to_csv(self):
+        try: 
+            os.path.exists(path)
+        except:
+            print("file does not exist")
+            
+        with open(path, 'r', encoding='utf-8') as csvfile:
+            reader = csv.reader(csvfile, delimiter=',')
+            
+            for label, msg in reader:
+                self.data[label].append(msg)
+                
+    def _write_to_csv(self, path):
         """"
         # write the data in self to a local csv file
         # the csv file should follow the format {label} , {message}
         # https://realpython.com/python-csv/
         """
-        self.data = []  # remove this line
+        try: 
+            os.path.exists(path)
+        except:
+            print("file does not exist")
+            
+        with open(path, 'w', newline='', encoding='utf-8') as csvfile:
+            writer = csv.writer(csvfile)
+            
+            for label, messages in self.data.items():
+                for msg in messages:
+                    writer.writerow([label, msg])
 
     def _populate_data(self, message_list):
         """

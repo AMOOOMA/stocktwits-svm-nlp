@@ -52,9 +52,9 @@ def make_dict_from_list(messages_list):
         elif label == Label.POS_LABEL.value:
             bullish_list.append(message)
 
-    label_dict[Label.NO_LABEL] = NO_LABEL_list
-    label_dict[Label.NEG_LABEL] = bearish_list
-    label_dict[Label.POS_LABEL] = bullish_list
+    label_dict[Label.NO_LABEL.value] = NO_LABEL_list
+    label_dict[Label.NEG_LABEL.value] = bearish_list
+    label_dict[Label.POS_LABEL.value] = bullish_list
 
     return label_dict
 
@@ -65,9 +65,9 @@ class DataScrapper:
         self.auth_username = auth_username
         self.auth_passwd = auth_passwd
         self.data = {
-            Label.NO_LABEL: [],
-            Label.NEG_LABEL: [],
-            Label.POS_LABEL: [],
+            Label.NO_LABEL.value: [],
+            Label.NEG_LABEL.value: [],
+            Label.POS_LABEL.value: [],
         }
 
     @staticmethod
@@ -140,31 +140,32 @@ class DataScrapper:
         # the csv file will follow the format {label} , {message}
         # https://realpython.com/python-csv/
         """
-        try: 
+        try:
             os.path.exists(path)
-        except:
+        except OSError:
             print("file does not exist")
-            
-        with open(path, 'r', encoding='utf-8') as csvfile:
-            reader = csv.reader(csvfile, delimiter=',')
-            
+
+        with open(path, 'r', encoding='utf-8') as csv_file:
+            reader = csv.reader(csv_file, delimiter=',')
+
             for label, msg in reader:
                 self.data[label].append(msg)
-                
+
     def _write_to_csv(self, path):
         """"
         # write the data in self to a local csv file
         # the csv file should follow the format {label} , {message}
         # https://realpython.com/python-csv/
         """
-        try: 
+        try:
             os.path.exists(path)
-        except:
+        except OSError:
             print("file does not exist")
-            
-        with open(path, 'w', newline='', encoding='utf-8') as csvfile:
-            writer = csv.writer(csvfile)
-            
+
+        with open(path, 'w', newline='', encoding='utf-8') as csv_file:
+            csv_file.truncate()  # clear the original file and rewrite
+            writer = csv.writer(csv_file)
+
             for label, messages in self.data.items():
                 for msg in messages:
                     writer.writerow([label, msg])
@@ -194,10 +195,12 @@ class DataScrapper:
         return message_list
 
     def run(self):
+        path = "./stocktwits.csv"  # default storage file
+        self._read_from_csv(path)
         symbols = self._get_trending_symbols()
         messages = self._get_messages_from_symbol(symbols)
         self._populate_data(make_dict_from_list(messages))
-        print(self.data)
+        self._write_to_csv(path)
 
 
 def main():

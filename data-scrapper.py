@@ -1,5 +1,6 @@
 import requests
 import json
+import time
 import csv
 import sys
 import os
@@ -197,10 +198,12 @@ class DataScrapper:
     def run(self):
         path = "./stocktwits.csv"  # default storage file
         self._read_from_csv(path)
-        symbols = self._get_trending_symbols()
-        messages = self._get_messages_from_symbol(symbols)
-        self._populate_data(make_dict_from_list(messages))
-        self._write_to_csv(path)
+        for i in range(100):
+            symbols = self._get_trending_symbols()
+            messages = self._get_messages_from_symbol(symbols)
+            self._populate_data(make_dict_from_list(messages))
+            self._write_to_csv(path)
+            time.sleep(720)  # wait 12 minutes because of api rate limit
 
 
 def main():

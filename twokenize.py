@@ -118,10 +118,10 @@ def align(toks, orig):
 
 class AlignmentFailed(Exception): pass
 
-def unicodify(s, encoding='utf8', *args):
-  if isinstance(s,unicode): return s
-  if isinstance(s,str): return s.decode(encoding, *args)
-  return unicode(s)
+# def unicodify(s, encoding='utf8', *args):
+#   if isinstance(s,unicode): return s
+#   if isinstance(s,str): return s.decode(encoding, *args)
+#   return unicode(s)
 
 def tokenize(tweet): # some code modified here from original ver
   text = squeeze_whitespace(tweet)

@@ -60,7 +60,6 @@ def main():
         print("The POS class' messages count: ", len(data[Label.POS_LABEL.value]))
 
 
-
 if __name__ == "__main__":
     # execute only if run as a script
     main()

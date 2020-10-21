@@ -27,7 +27,8 @@ def tokenize(message):
 
 
 def process_tokens(tokens):
-    tokens = map(lambda x: x, tokens)
+    stemmer = SnowballStemmer("english")
+    tokens = map(lambda x: stemmer.stem(x), tokens)
     return tokens
 
 
@@ -53,7 +54,7 @@ class Trainer:
             for message in self.data[label]:
                 cash_tags, tokens = tokenize(message)
                 self.cash_tags.extend(x for x in cash_tags if x not in self.cash_tags)  # add new cash_tags
-                for token in tokens:  # no need to process_tokens here for log reg
+                for token in process_tokens(tokens):
                     self.bow[token] = self.bow[token] + 1 if token in self.bow else 1
 
     def _generate_bow_feature_vector(self):  # use DictVectorizer to feature vector for log reg
@@ -70,7 +71,7 @@ class Trainer:
     def get_bow_score(self):
         self._fill_bow()
         self._generate_bow_feature_vector()
-        print(self.cash_tags)
+        print(len(self.bow))
         return self.data
 
 

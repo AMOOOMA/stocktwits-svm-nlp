@@ -33,17 +33,26 @@ def process_tokens(tokens):
 class Trainer:
 
     def __init__(self, data):
+        # common variables
         self.data = data
+        self.y = []
+
+        # variables for baseline algo
         self.bow = Counter()
         self.bow_features = []
+        self.log_reg_X = []
 
-    def _fill_bow(self):
+        # variables for SVM
+        self.features = []
+        self.X = []
+
+    def _fill_bow(self):  # fill the bow dictionary with self.data
         for label in self.data:
             for message in self.data[label]:
-                for token in tokenize(message):
+                for token in tokenize(message):  # no need to process_tokens here for log reg
                     self.bow[token] = self.bow[token] + 1 if token in self.bow else 1
 
-    def _generate_bow_feature_vector(self):
+    def _generate_bow_feature_vector(self):  # use DictVectorizer to feature vector for log reg
         vec = DictVectorizer()
         vec.fit_transform(self.bow)
         self.bow_features = vec.get_feature_names()

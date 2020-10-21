@@ -2,7 +2,7 @@ import csv
 import os
 from collections import Counter
 
-import tokenizer
+from tokenizer import Tokenizer
 
 import numpy as np
 
@@ -22,7 +22,8 @@ class Label(Enum):
 
 
 def tokenize(message):
-    return tokenizer.tokenize(message)
+    custom_tokenizer = Tokenizer()
+    return custom_tokenizer.tokenize(message)  # returns a tuple ([cash_tag], [tokens])
 
 
 def process_tokens(tokens):
@@ -35,6 +36,7 @@ class Trainer:
     def __init__(self, data):
         # common variables
         self.data = data
+        self.cash_tags = []
         self.y = []
 
         # variables for baseline algo
@@ -49,7 +51,9 @@ class Trainer:
     def _fill_bow(self):  # fill the bow dictionary with self.data
         for label in self.data:
             for message in self.data[label]:
-                for token in tokenize(message):  # no need to process_tokens here for log reg
+                cash_tags, tokens = tokenize(message)
+                self.cash_tags.extend(x for x in cash_tags if x not in self.cash_tags)  # add new cash_tags
+                for token in tokens:  # no need to process_tokens here for log reg
                     self.bow[token] = self.bow[token] + 1 if token in self.bow else 1
 
     def _generate_bow_feature_vector(self):  # use DictVectorizer to feature vector for log reg
@@ -64,6 +68,9 @@ class Trainer:
         return self.data
 
     def get_bow_score(self):
+        self._fill_bow()
+        self._generate_bow_feature_vector()
+        print(self.cash_tags)
         return self.data
 
 
@@ -81,6 +88,9 @@ def main():
 
         print("The NEG class' messages count: ", len(data[Label.NEG_LABEL.value]))
         print("The POS class' messages count: ", len(data[Label.POS_LABEL.value]))
+
+        trainer = Trainer(data)
+        trainer.get_bow_score()
 
 
 if __name__ == "__main__":

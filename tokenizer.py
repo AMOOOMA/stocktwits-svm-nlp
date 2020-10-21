@@ -17,8 +17,8 @@ class Tokenizer:
         # returns a tuple: ([cash_tags], [tokens])
         """
         self.message = twokenize.tokenize(message)  # calls the Tweetmotif's tokenizer
-        self._clean_at_symbols()
         self._extract_cash_tags()
+        self._clean_at_symbols()
         return self.cash_tags, self.message
 
     def _clean_at_symbols(self):
@@ -38,15 +38,18 @@ class Tokenizer:
         # Note, the tokens in self should
         # be updated with new tokens list
         """
+
         def has_numbers(string):
             return any(char.isdigit() for char in string)
 
-        for tok in self.message:
-            # if the token begins with '$' and contains no numbers,
-            # and it's all capitals, it's most likely a company
-            if tok[0] == '$' and not has_numbers(tok[1:]) and tok[1:].isupper():
+        def has_alpha(string):
+            return any(char.isalpha() for char in string)
+
+        for tok in self.message[:]:  # use a copy because we will modify the original list
+            # if the token begins with '$' and contains no numbers and has alphabet, it's most likely a company
+            if tok[0] == '$' and not has_numbers(tok[1:]) and has_alpha(tok[1:]):
                 # to avoid repeats, append only if token is not in self.cash_tag
-                if not tok in self.cash_tags:
+                if tok not in self.cash_tags:
                     self.cash_tags.append(tok)
                 self.message.remove(tok)
 

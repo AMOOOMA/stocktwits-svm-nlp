@@ -2,6 +2,8 @@ import csv
 import os
 from collections import Counter
 
+import tokenizer
+
 import numpy as np
 
 from sklearn.linear_model import LogisticRegression
@@ -20,8 +22,7 @@ class Label(Enum):
 
 
 def tokenize(message):
-    tokens = []
-    return tokens
+    return tokenizer.tokenize(message)
 
 
 def process_tokens(tokens):
@@ -33,14 +34,27 @@ class Trainer:
 
     def __init__(self, data):
         self.data = data
+        self.bow = Counter()
+        self.bow_features = []
 
-    def _generate_feature_vector(self):
+    def _fill_bow(self):
+        for label in self.data:
+            for message in self.data[label]:
+                for token in tokenize(message):
+                    self.bow[token] = self.bow[token] + 1 if token in self.bow else 1
+
+    def _generate_bow_feature_vector(self):
+        vec = DictVectorizer()
+        vec.fit_transform(self.bow)
+        self.bow_features = vec.get_feature_names()
+
+    def _generate_bow_X(self):
         return self.data
 
-    def _train(self):
+    def _bow_train(self):
         return self.data
 
-    def get_score(self):
+    def get_bow_score(self):
         return self.data
 
 

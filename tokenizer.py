@@ -27,7 +27,9 @@ class Tokenizer:
         # replace the message in self with
         # the cleaned list of tokens
         """
-        self.message = []
+        for tok in self.message:
+            if tok[0] == "@":
+                self.message.remove(tok)
 
     def _extract_cash_tags(self):
         """
@@ -36,7 +38,6 @@ class Tokenizer:
         # Note, the tokens in self should
         # be updated with new tokens list
         """
-
         def has_numbers(string):
             return any(char.isdigit() for char in string)
 
@@ -48,6 +49,7 @@ class Tokenizer:
                 if not tok in self.cash_tags:
                     self.cash_tags.append(tok)
                 self.message.remove(tok)
+
 
 def main():
     # for testing propose

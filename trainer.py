@@ -105,7 +105,7 @@ class Trainer:
         # Creates model and cross validation sets
         kf = KFold(n_splits=10, shuffle=True)
         kf.get_n_splits()
-        model = LogisticRegression(solver='sag', random_state=0, max_iter=10000, n_jobs=-1)
+        model = LogisticRegression(solver='sag', random_state=0, n_jobs=-1, verbose=10)
         model_score = []
 
         for train_index, test_index in kf.split(self.log_reg_X, self.log_reg_y):

@@ -6,6 +6,7 @@ import numpy as np
 
 from sklearn.model_selection import KFold
 from sklearn.feature_extraction import DictVectorizer
+from sklearn import preprocessing
 
 from helper import tokenize
 from helper import process_tokens

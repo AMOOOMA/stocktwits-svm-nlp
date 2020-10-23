@@ -8,6 +8,8 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import GaussianNB
 from sklearn.model_selection import KFold
 from sklearn.feature_extraction import DictVectorizer
+from sklearn import preprocessing
+from sklearn import svm
 
 from helper import tokenize
 from helper import process_tokens
@@ -65,6 +67,8 @@ class BaselineTrainer:
         X = self.bow_X.copy()
         y = self.bow_y.copy()
 
+        X = preprocessing.scale(X)
+
         # Creates model and cross validation sets
         kf = KFold(n_splits=5, shuffle=True)
         kf.get_n_splits()
@@ -85,12 +89,15 @@ class BaselineTrainer:
 
         log_reg_model = LogisticRegression(solver='sag', random_state=0, n_jobs=-1, verbose=10)
         log_reg_scores = self._bow_train(log_reg_model)
+        print("Log Reg score: ", sum(log_reg_scores) / len(log_reg_scores))
 
         naive_bayes_model = GaussianNB()
         naive_bayes_scores = self._bow_train(naive_bayes_model)
-
-        print("Log Reg score: ", sum(log_reg_scores) / len(log_reg_scores))
         print("Naive Bayes score: ", sum(naive_bayes_scores) / len(naive_bayes_scores))
+
+        # svm_model = svm.LinearSVC(verbose=10)  # performs similar to LR
+        # svm_scores = self._bow_train(svm_model)
+        # print("SVM scores: ", sum(svm_scores) / len(svm_scores))
 
 
 def main():

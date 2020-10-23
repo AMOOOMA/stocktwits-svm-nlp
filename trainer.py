@@ -36,6 +36,20 @@ def process_tokens(tokens):
     return list(tokens)
 
 
+def find_index(token, low, high, features):  # binary search to find element index in list
+    if high >= low:
+        mid = int((high + low) / 2)
+
+        if features[mid] == token:
+            return mid
+        elif features[mid] > token:
+            return find_index(token, low, mid - 1, features)
+        else:
+            return find_index(token, mid + 1, high, features)
+
+    return -1
+
+
 class Trainer:
 
     def __init__(self, data):
@@ -66,6 +80,7 @@ class Trainer:
         vec = DictVectorizer()  # To be decided
         vec.fit_transform(self.bow)
         self.bow_features = vec.get_feature_names()
+        self.bow_features.sort()  # prepare for binary search
 
     def _generate_bow_X(self):
         # key = (NEG_LABEL, POS_LABEL)
@@ -75,7 +90,7 @@ class Trainer:
                 line_vector = np.zeros(len(self.bow_features) + 1)
 
                 for token in tokens:
-                    idx = np.where(np.array(self.bow_features) == token)[0]
+                    idx = find_index(token, 0, len(self.bow_features) - 1, self.bow_features)
                     line_vector[idx] += 1
 
                 line_vector[len(line_vector) - 1] = len(tokens)
@@ -83,19 +98,19 @@ class Trainer:
 
     def _bow_train(self):
         # Format into numpy data structure
-        self.log_reg_y = np.concatenate((-1 * len(self.data[Label.NEG_LABEL.value]),
-                                         1 * len(self.data[Label.POS_LABEL.value])))
+        self.log_reg_y = np.concatenate(([Label.NEG_LABEL.value] * len(self.data[Label.NEG_LABEL.value]),
+                                         [Label.POS_LABEL.value] * len(self.data[Label.POS_LABEL.value])))
         self.log_reg_X = np.array(self.log_reg_X)
 
         # Creates model and cross validation sets
-        kf = KFold(n_splits=15, shuffle=True)
+        kf = KFold(n_splits=10, shuffle=True)
         kf.get_n_splits()
-        model = LogisticRegression(max_iter=10000)
+        model = LogisticRegression(solver='sag', random_state=0, max_iter=10000, n_jobs=-1)
         model_score = []
 
-        for train_index, test_index in kf.split(self.log_reg_X, self.y):
-            X_train, X_test = self.X[train_index], self.X[test_index]
-            y_train, y_test = self.y[train_index], self.y[test_index]
+        for train_index, test_index in kf.split(self.log_reg_X, self.log_reg_y):
+            X_train, X_test = self.log_reg_X[train_index], self.log_reg_X[test_index]
+            y_train, y_test = self.log_reg_y[train_index], self.log_reg_y[test_index]
             model.fit(X_train, y_train)
             model_score.append(model.score(X_test, y_test))
 

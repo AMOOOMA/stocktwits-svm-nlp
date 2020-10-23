@@ -1,19 +1,17 @@
-
-# imports Value
 import csv
-# dictionary
+
 from collections import Counter
-# tokenize Messages
+
 from tokenizer import Tokenizer
-# Creates data structures for models
+
 import numpy as np
-#M odels
+
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import KFold
 from sklearn.feature_extraction import DictVectorizer
-#
+
 from nltk.stem import SnowballStemmer
-# Labels
+
 from enum import Enum
 
 
@@ -25,16 +23,8 @@ class Label(Enum):
 
 def tokenize(message):
     """
-    Parameters
-    ----------
-    message : string
-        twit message
-
-    Returns
-    -------
-    (cash_tag : [string], token : [string])
-        tuple containing cash tag and tokens
-
+    return (cash_tags : [string], tokens : [string])
+        tuple containing cash_tags and tokens
     """
     custom_tokenizer = Tokenizer()
     return custom_tokenizer.tokenize(message)
@@ -43,7 +33,7 @@ def tokenize(message):
 def process_tokens(tokens):
     stemmer = SnowballStemmer("english")
     tokens = map(lambda x: stemmer.stem(x), tokens)
-    return tokens
+    return list(tokens)
 
 
 class Trainer:
@@ -52,16 +42,17 @@ class Trainer:
         # common variables
         self.data = data
         self.cash_tags = []
-        self.y = []
 
         # variables for baseline algo
         self.bow = Counter()
         self.bow_features = []
         self.log_reg_X = []
+        self.log_reg_y = []
 
         # variables for SVM
         self.features = []
         self.X = []
+        self.y = []
 
     def _fill_bow(self):  # fill the bow dictionary with self.data
         for label in self.data:
@@ -71,58 +62,54 @@ class Trainer:
                 for token in process_tokens(tokens):
                     self.bow[token] = self.bow[token] + 1 if token in self.bow else 1
 
-    #_generate_bow_feature_vector or _generate_bow_X can be deleted, they are a bit redudant 
     def _generate_bow_feature_vector(self):  # use DictVectorizer to feature vector for log reg
-        vec = DictVectorizer()
+        vec = DictVectorizer()  # To be decided
         vec.fit_transform(self.bow)
         self.bow_features = vec.get_feature_names()
 
     def _generate_bow_X(self):
-        self._fill_bow()
-        self._generate_bow_feature_vector()
-        stemmer = SnowballStemmer("english")
-        
         # key = (NEG_LABEL, POS_LABEL)
         for key in self.data:
             for message in self.data[key]:
-                tokens = tokenize(message)[1]
+                tokens = process_tokens(tokenize(message)[1])
                 line_vector = np.zeros(len(self.bow_features) + 1)
-                
+
                 for token in tokens:
-                    token = stemmer.stem(token) #
-                    idx = np.where(np.array(self.bow_features) == token)[0] 
-                    '''
-                    E:\Programs\Anaconda\lib\site-packages\sklearn\linear_model\_logistic.py:762: ConvergenceWarning: lbfgs failed to converge (status=1):
-                        STOP: TOTAL NO. of ITERATIONS REACHED LIMIT.
-            
-                    Increase the number of iterations (max_iter) or scale the data as shown in: https://scikit-learn.org/stable/modules/preprocessing.html
-                    Please also refer to the documentation for alternative solver options: https://scikit-learn.org/stable/modules/linear_model.html#logistic-regression
-                      n_iter_i = _check_optimize_result(
-                    '''
+                    idx = np.where(np.array(self.bow_features) == token)[0]
                     line_vector[idx] += 1
-                    
+
                 line_vector[len(line_vector) - 1] = len(tokens)
-                self.X.append(line_vector)
-                
+                self.log_reg_X.append(line_vector)
+
     def _bow_train(self):
         # Format into numpy data structure
-        y = np.concatenate(([Label.NEG_LABEL.value] * len(self.data[Label.NEG_LABEL.value]),
-                            [Label.POS_LABEL.value] * len(self.data[Label.POS_LABEL.value])))
-        self.X = np.array(self.X)
-        
-        # Creates model
-        model = LogisticRegression(random_state=0).fit(self.X,y);
-        return model
+        self.log_reg_y = np.concatenate((-1 * len(self.data[Label.NEG_LABEL.value]),
+                                         1 * len(self.data[Label.POS_LABEL.value])))
+        self.log_reg_X = np.array(self.log_reg_X)
+
+        # Creates model and cross validation sets
+        kf = KFold(n_splits=15, shuffle=True)
+        kf.get_n_splits()
+        model = LogisticRegression(max_iter=10000)
+        model_score = []
+
+        for train_index, test_index in kf.split(self.log_reg_X, self.y):
+            X_train, X_test = self.X[train_index], self.X[test_index]
+            y_train, y_test = self.y[train_index], self.y[test_index]
+            model.fit(X_train, y_train)
+            model_score.append(model.score(X_test, y_test))
+
+        return model, model_score
 
     def get_bow_score(self):
         self._fill_bow()
         self._generate_bow_feature_vector()
-        # print(len(self.bow))
-        return self.data
+        self._generate_bow_X()
+        model, scores = self._bow_train()
+        return sum(scores) / len(scores)
 
 
 def main():
-    
     path = "./stocktwits_labelled.csv"
     with open(path, 'r', encoding='utf-8') as csv_file:
         reader = csv.reader(csv_file, delimiter=',')
@@ -138,10 +125,7 @@ def main():
         print("The POS class' messages count: ", len(data[Label.POS_LABEL.value]))
 
         trainer = Trainer(data)
-        trainer.get_bow_score()
-        trainer._generate_bow_X()
-        trainer._bow_train()
-        
+        print(trainer.get_bow_score())
 
 
 if __name__ == "__main__":

@@ -70,7 +70,7 @@ class BaselineTrainer:
         X = preprocessing.scale(X)
 
         # Creates model and cross validation sets
-        kf = KFold(n_splits=5, shuffle=True)
+        kf = KFold(n_splits=2, shuffle=True)
         kf.get_n_splits()
         model_score = []
 
@@ -95,9 +95,10 @@ class BaselineTrainer:
         naive_bayes_scores = self._bow_train(naive_bayes_model)
         print("Naive Bayes score: ", sum(naive_bayes_scores) / len(naive_bayes_scores))
 
-        # svm_model = svm.LinearSVC(verbose=10)  # performs similar to LR
-        # svm_scores = self._bow_train(svm_model)
-        # print("SVM scores: ", sum(svm_scores) / len(svm_scores))
+        svm_model = svm.SVC(kernel='rbf', cache_size=4000, max_iter=5000, verbose=True)  # performs similar to LR
+        svm_scores = self._bow_train(svm_model)
+        print("SVM scores: ", sum(svm_scores) / len(svm_scores))
+        print(svm_scores)
 
 
 def main():

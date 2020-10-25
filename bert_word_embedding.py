@@ -1,6 +1,9 @@
 import numpy as np
 import torch
+
 from transformers import BertTokenizer, BertModel
+
+from scipy.spatial.distance import cosine
 
 from helper import tokenize
 
@@ -31,6 +34,10 @@ class BertWordEmbedding:
         # returns a tuple containing
         # the BERT style tokens and embeddings
         """
+        # Reset the global variables
+        self.tokens = []
+        self.embeddings = []
+
         _, self.tokens = tokenize(message)  # use our custom tokenizer
         encoded = tokenizer.encode_plus(  # encoded the pre tokenized message
             text=self.tokens,
@@ -50,23 +57,39 @@ class BertWordEmbedding:
 
             outputs = model(input_ids_tensor, attention_mask_tensors)
             hidden_states = outputs[2]
-            batch_index = 1
+            batch_index = 0
 
             for token_index in range(len(self.tokens)):
                 layers = []
                 for layer_index in range(-4, 0):  # only use the last four layers
-                    layers.append(hidden_states[layer_index][batch_index][token_index])
+                    layers.append(hidden_states[layer_index][batch_index][token_index].tolist())
 
-                self.embeddings.append(map(lambda x: x / 4, np.sum(layers, 0)))  # add the avg of the last four layers
+                self.embeddings.append(list(map(lambda x: x / 4, np.sum(layers, axis=0))))  # add the avg of the last four layers
 
         return self.tokens, self.embeddings
 
 
 def main():
-    # for testing propose
-    test_message = "$AAPL, $JD Hello this is a @someone https://github.com/AMOOOMA/stocktwits-svm-nlp test message $AMZN"
+    # for testing propose, credits to https://mccormickml.com/2019/05/14/BERT-word-embeddings-tutorial/
     embedding = BertWordEmbedding()
-    embedding.get_message_embedding(test_message)
+    context_test_message = "After stealing money from the bank vault, the bank robber was seen fishing on the Mississippi river bank."
+    tokens, embeddings = embedding.get_message_embedding(context_test_message)
+    print('First 5 vector values for each instance of "bank".')
+    print('')
+    print("bank vault   ", str(embeddings[6][:5]))
+    print("bank robber  ", str(embeddings[10][:5]))
+    print("river bank   ", str(embeddings[19][:5]))
+
+    # Calculate the cosine similarity between the word bank
+    # in "bank robber" vs "river bank" (different meanings).
+    diff_bank = 1 - cosine(embeddings[10], embeddings[19])
+
+    # Calculate the cosine similarity between the word bank
+    # in "bank robber" vs "bank vault" (same meaning).
+    same_bank = 1 - cosine(embeddings[10], embeddings[6])
+
+    print('Vector similarity for  *similar*  meanings:  %.2f' % same_bank)
+    print('Vector similarity for *different* meanings:  %.2f' % diff_bank)
 
 
 if __name__ == "__main__":

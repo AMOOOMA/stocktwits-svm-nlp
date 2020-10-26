@@ -34,7 +34,7 @@ def main():
         embedding = BertWordEmbedding()
 
         index = 0
-        prev_written = 0
+        prev_written = -1
         with open("./stocktwits_embeddings.csv", "w", newline="", encoding='utf-8') as f:
             writer = csv.writer(f)
             for label, message in reader:

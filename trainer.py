@@ -31,19 +31,19 @@ def main():
             Label.POS_LABEL.value: [],
         }
 
-        # embedding = BertWordEmbedding()
+        embedding = BertWordEmbedding()
 
-        # index = 0
-        # prev_written = 659
-        # with open("./stocktwits_embeddings.csv", "w", newline="", encoding='utf-8') as f:
-        #     writer = csv.writer(f)
-        #     for label, message in reader:
-        #         if index > prev_written:
-        #             data[label].append(message)
-        #             tokens, embeddings = embedding.get_message_embedding(message)
-        #             writer.writerow([label, embeddings])
-        #             print("Message embeddings written, index: ", index)
-        #         index += 1
+        index = 0
+        prev_written = 0
+        with open("./stocktwits_embeddings.csv", "w", newline="", encoding='utf-8') as f:
+            writer = csv.writer(f)
+            for label, message in reader:
+                if index > prev_written:
+                    data[label].append(message)
+                    tokens, embeddings = embedding.get_message_embedding(message)
+                    writer.writerow([label, embeddings])
+                    print("Message embeddings written, index: ", index)
+                index += 1
 
         for label, message in reader:
             data[label].append(message)

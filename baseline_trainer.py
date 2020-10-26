@@ -102,7 +102,7 @@ class BaselineTrainer:
 
 
 def main():
-    path = "stocktwits_labelled.csv"
+    path = "stocktwits_labelled_train.csv"
     with open(path, 'r', encoding='utf-8') as csv_file:
         reader = csv.reader(csv_file, delimiter=',')
         data = {

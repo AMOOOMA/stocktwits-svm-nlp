@@ -15,6 +15,7 @@ class BertWordEmbedding:
     def __init__(self):
         self.tokens = []
         self.embeddings = []
+        print(torch.cuda.is_available())
 
     def _update_tokens(self, token_ids):
         """
@@ -39,6 +40,10 @@ class BertWordEmbedding:
         self.embeddings = []
 
         _, self.tokens = tokenize(message)  # use our custom tokenizer
+
+        if len(self.tokens) == 0:
+            return None, None
+
         encoded = tokenizer.encode_plus(  # encoded the pre tokenized message
             text=self.tokens,
             add_special_tokens=True,
@@ -48,9 +53,12 @@ class BertWordEmbedding:
         print(self.tokens)
 
         input_ids_tensor = torch.tensor([encoded['input_ids']])
+        input_ids_tensor = input_ids_tensor.to('cuda:0')
         attention_mask_tensors = torch.tensor([encoded['attention_mask']])
+        attention_mask_tensors = attention_mask_tensors.to('cuda:0')
 
         model = BertModel.from_pretrained('bert-base-uncased', output_hidden_states=True)
+        model = model.to('cuda:0')
         model.eval()
 
         with torch.no_grad():

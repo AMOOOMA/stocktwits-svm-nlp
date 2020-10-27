@@ -19,7 +19,7 @@ class Tokenizer:
         self.message = twokenize.tokenize(message)  # calls the Tweetmotif's tokenizer
         self._extract_cash_tags()
         self._clean_at_symbols()
-        self._replace_urls()
+        self._remove_urls()
         return self.cash_tags, self.message
 
     def _clean_at_symbols(self):
@@ -28,7 +28,7 @@ class Tokenizer:
         # replace the message in self with
         # the cleaned list of tokens
         """
-        for tok in self.message[:]:
+        for tok in self.message[:]:  # use a copy because we will modify the original list
             if tok[0] == "@":
                 self.message.remove(tok)
 
@@ -38,7 +38,7 @@ class Tokenizer:
         # replace the message in self with
         # the cleaned list of tokens
         """
-        for token in self.message[:]:
+        for token in self.message[:]:  # use a copy because we will modify the original list
             if len(token) > 3 and token[:4] == "http":
                 self.message.remove(token)
 

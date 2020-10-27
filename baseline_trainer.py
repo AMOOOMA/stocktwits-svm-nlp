@@ -87,7 +87,13 @@ class BaselineTrainer:
         self._generate_bow_feature_vector()
         self._generate_bow_dataset()
 
-        log_reg_model = LogisticRegression(solver='sag', random_state=0, n_jobs=-1, verbose=10)
+        # Print stats about BOW and dataset
+        print("Total messages count: ", len(self.bow_y))
+        print("Vocab size: ", len(self.bow_features) - 1)
+        print("Tokens size: ", sum(self.bow.values()))
+        print("Unique cash tags: ", len(self.cash_tags))
+
+        log_reg_model = LogisticRegression(solver='sag', random_state=0, max_iter=1000, n_jobs=-1, verbose=0)
         log_reg_scores = self._bow_train(log_reg_model)
         print("Log Reg score: ", sum(log_reg_scores) / len(log_reg_scores))
 

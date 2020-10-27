@@ -28,17 +28,17 @@ class Tokenizer:
         # replace the message in self with
         # the cleaned list of tokens
         """
-        for tok in self.message:
+        for tok in self.message[:]:
             if tok[0] == "@":
                 self.message.remove(tok)
 
-    def _replace_urls(self):
+    def _remove_urls(self):
         """
         # Should remove all urls in tokens
         # replace the message in self with
         # the cleaned list of tokens
         """
-        for token in self.message:
+        for token in self.message[:]:
             if len(token) > 3 and token[:4] == "http":
                 self.message.remove(token)
 

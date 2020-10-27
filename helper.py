@@ -1,8 +1,12 @@
+import csv
+
 from tokenizer import Tokenizer
 
 from nltk.stem import SnowballStemmer
 
 from enum import Enum
+
+from bert_word_embedding import BertWordEmbedding
 
 
 class Label(Enum):
@@ -60,3 +64,38 @@ def PCA_reduce_dimensionality(X):
     # training time
     """
     return X
+
+
+def generate_embedding_for_path(path):
+    """
+    # Helper for generate word embeddings
+    # for the whole dataset, note this
+    # process will take a significant
+    # amount of time, 7k messages ~ 8 hours
+    """
+    with open(path, 'r', encoding='utf-8') as csv_file:
+        reader = csv.reader(csv_file, delimiter=',')
+        data = {
+            Label.NEG_LABEL.value: [],
+            Label.POS_LABEL.value: [],
+        }
+
+        embedding = BertWordEmbedding()
+
+        index = 0
+        prev_written = -1
+        with open("./stocktwits_embeddings.csv", "w", newline="", encoding='utf-8') as f:
+            writer = csv.writer(f)
+            for label, message in reader:
+                if index > prev_written:
+                    data[label].append(message)
+                    tokens, embeddings = embedding.get_message_embedding(message)
+                    writer.writerow([label, embeddings])
+                    print("Message embeddings written, index: ", index)
+                index += 1
+
+        for label, message in reader:
+            data[label].append(message)
+
+        print("The NEG class' messages count: ", len(data[Label.NEG_LABEL.value]))
+        print("The POS class' messages count: ", len(data[Label.POS_LABEL.value]))

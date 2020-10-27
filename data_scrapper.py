@@ -196,7 +196,7 @@ class DataScrapper:
         return message_list
 
     def run(self):
-        path = "./stocktwits.csv"  # default storage file
+        path = "data/stocktwits.csv"  # default storage file
         self._read_from_csv(path)
         for i in range(100):
             symbols = self._get_trending_symbols()

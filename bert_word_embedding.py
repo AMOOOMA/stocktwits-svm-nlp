@@ -52,13 +52,10 @@ class BertWordEmbedding:
         self._update_tokens(encoded['input_ids'])  # update with BERT compatible tokens list
         print(self.tokens)
 
-        input_ids_tensor = torch.tensor([encoded['input_ids']])
-        input_ids_tensor = input_ids_tensor.to('cuda:0')
-        attention_mask_tensors = torch.tensor([encoded['attention_mask']])
-        attention_mask_tensors = attention_mask_tensors.to('cuda:0')
+        input_ids_tensor = torch.tensor([encoded['input_ids']]).to('cuda:0')
+        attention_mask_tensors = torch.tensor([encoded['attention_mask']]).to('cuda:0')
 
-        model = BertModel.from_pretrained('bert-base-uncased', output_hidden_states=True)
-        model = model.to('cuda:0')
+        model = BertModel.from_pretrained('bert-base-uncased', output_hidden_states=True).to('cuda:0')
         model.eval()
 
         with torch.no_grad():

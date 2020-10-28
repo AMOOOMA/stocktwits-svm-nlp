@@ -1,7 +1,16 @@
 # Stocktwits messaages sentiment analysis
 
 ### Model Introduction
-TO DO
+This project uses Support Vector Machine and BERT word embeddings to make sentiment prediction on messages from stockttwits, one of the biggest financial forum in the world.
+
+The main ideas behind our model can be divided into several steps:
+1. Encode the messages using the BERT pretrained model "bert-base-uncased".
+2. Standardize the dataset by using tricks to fit and flatten word embeddings into a standard length vector.
+3. Perform Principal Component Analysis on the whole dataset to reduce the matrix dimensionality.
+4. Some additional feature engineering for the flatten standardized vector.
+5. Train the SVM model with the best performing kernel in hand.
+
+For more detailed information, checkout our [project report](https://github.com/AMOOOMA/stocktwits-svm-nlp).
 
 ### Model Performance
 TO DO

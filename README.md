@@ -1,4 +1,5 @@
 # Stocktwits messaages sentiment analysis
+WARNING: This project is still in development!
 
 ### Model Introduction
 This project uses Support Vector Machine and BERT word embeddings to make sentiment prediction on messages from stockttwits, one of the biggest financial forum in the world.

@@ -56,6 +56,8 @@ class Trainer:
         return model_score
 
     def print_kernels_score(self):
+        self._generate_dataset()
+
         kernels = ['linear', 'poly', 'rbf', 'sigmoid']
         for kernel in kernels:
             kernel_score = self._SVM_train(kernel)

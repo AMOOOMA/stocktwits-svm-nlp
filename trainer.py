@@ -18,6 +18,11 @@ class Trainer:
         self.y = []
 
     def _generate_dataset(self):
+        """
+        # generate X and y using
+        # self.data, format in
+        # {label} : [{message vector}]
+        """
         for label in self.data:
             for vector in self.data[label]:
                 self.X.append(vector)

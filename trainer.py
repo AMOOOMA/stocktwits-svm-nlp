@@ -29,6 +29,12 @@ class Trainer:
                 self.y.append(label)
 
     def _SVM_train(self, kernel):
+        """
+        # Train a SVM model with kernel
+        # After training finished, dumps the
+        # model locally as {kernel name}.joblib
+        # and prints out the accuracy stats
+        """
         # make sure the format is np.array and make copy
         X = np.array(self.X).copy()
         y = np.array(self.y).copy()
@@ -52,6 +58,12 @@ class Trainer:
         return model_score
 
     def print_kernels_score(self):
+        """
+        # train four different SVM models
+        # with different kernels to compare
+        # and see which one is best for
+        # this particular dataset/task
+        """
         self._generate_dataset()
 
         kernels = ['linear', 'poly', 'rbf', 'sigmoid']
@@ -75,7 +87,8 @@ def main():
     print("The POS class' messages count: ", len(data[Label.POS_LABEL.value]))
 
     trainer = Trainer(data)
-
+    trainer.print_kernels_score()
+    
 
 if __name__ == "__main__":
     # execute only if run as a script

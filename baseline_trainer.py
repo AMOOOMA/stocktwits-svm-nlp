@@ -1,6 +1,7 @@
 import csv
 
 import numpy as np
+# import pandas as pd
 
 from collections import Counter
 
@@ -15,6 +16,7 @@ from helper import tokenize
 from helper import process_tokens
 from helper import find_index
 from helper import Label
+from helper import PCA_reduce_dimensionality
 
 
 class BaselineTrainer:
@@ -61,12 +63,15 @@ class BaselineTrainer:
         # Format into numpy data structure just in case
         self.bow_X = np.array(self.bow_X)
         self.bow_y = np.array(self.bow_y)
+        
 
     def _bow_train(self, model):
         # Make copies because of reuse
         X = self.bow_X.copy()
         y = self.bow_y.copy()
 
+        X = PCA_reduce_dimensionality(X)
+        print("reduce dimensionality works")
         X = preprocessing.scale(X)
 
         # Creates model and cross validation sets
@@ -86,7 +91,7 @@ class BaselineTrainer:
         self._fill_bow()
         self._generate_bow_feature_vector()
         self._generate_bow_dataset()
-
+        
         # Print stats about BOW and dataset
         print("Total messages count: ", len(self.bow_y))
         print("Vocab size: ", len(self.bow_features) - 1)
@@ -126,6 +131,9 @@ def main():
 
         trainer = BaselineTrainer(data)
         trainer.print_bow_score()
+        # So we don't have to regenerate the dataset everytime we want to run our model 
+        # pd.DataFrame(trainer.bow_X).to_csv("data/bow_X.csv")
+        # pd.DataFrame(trainer.bow_y).to_csv("data/bow_y.csv")
 
 
 if __name__ == "__main__":

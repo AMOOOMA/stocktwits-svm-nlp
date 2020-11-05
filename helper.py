@@ -4,6 +4,8 @@ from tokenizer import Tokenizer
 
 from nltk.stem import SnowballStemmer
 
+from sklearn import decomposition
+
 from enum import Enum
 
 # from bert_word_embedding import BertWordEmbedding
@@ -63,6 +65,15 @@ def PCA_reduce_dimensionality(X):
     # dimensionality for faster
     # training time
     """
+    
+    pca = decomposition.PCA()
+    
+    # Checks necessary dimensions
+    # pca.fit(X)
+    # print(pca.explained_variance_)
+    # Remove 25% of most varied data
+    pca.n_components = 3*len(X)//4
+    X = pca.fit_transform(X)
     return X
 
 

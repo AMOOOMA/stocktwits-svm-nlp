@@ -8,6 +8,7 @@ from sklearn import decomposition
 
 from enum import Enum
 
+from graphs import mk_pca
 # from bert_word_embedding import BertWordEmbedding
 
 
@@ -57,7 +58,7 @@ def find_index(token, low, high, features):  # binary search to find element ind
     return -1
 
 
-def PCA_reduce_dimensionality(X):
+def PCA_reduce_dimensionality(X, n_components = 2, quiet = True):
     """
     # Perform a PCA analysis
     # on the dataset X and
@@ -67,15 +68,14 @@ def PCA_reduce_dimensionality(X):
     """
     
     pca = decomposition.PCA()
+    pca.fit(X)
     
-    # Checks necessary dimensions
-    # pca.fit(X)
-    # print(pca.explained_variance_)
-    # Remove 25% of most varied data
-    pca.n_components = 3*len(X)//4
-    X = pca.fit_transform(X)
+    if not quiet:
+        mk_pca(pca.explained_variance_[:n_components])
+    
+    pca.n_components = n_components
+    X = pca.transform(X)
     return X
-
 
 # def generate_embedding_for_path(path):
 #     """

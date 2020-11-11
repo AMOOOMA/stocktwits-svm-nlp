@@ -42,7 +42,7 @@ class Label(Enum):
 If you want to just train the model yourself and see the tracing messages, feel free to run command `python trainer.py`.
 
 ### Credits
-The tokenizer we used is from project [tweetmotif](https://github.com/brendano/tweetmotif).
+The tokenizer we used is built upon the work from project [tweetmotif](https://github.com/brendano/tweetmotif).
 
 Brendan O'Connor, Michel Krieger, and David Ahn. TweetMotif: Exploratory Search and Topic Summarization for Twitter. ICWSM-2010.
 

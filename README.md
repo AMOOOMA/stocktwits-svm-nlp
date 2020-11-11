@@ -41,7 +41,13 @@ class Label(Enum):
 
 If you want to just train the model yourself and see the tracing messages, feel free to run command `python trainer.py`.
 
-### Credits and references
+### Credits
 The tokenizer we used is from project [tweetmotif](https://github.com/brendano/tweetmotif).
 
 Brendan O'Connor, Michel Krieger, and David Ahn. TweetMotif: Exploratory Search and Topic Summarization for Twitter. ICWSM-2010.
+
+### Reference papers
+
+Quanzhi Li and Sameena Shah. Learning stock market sentiment lexicon and sentiment-oriented word vector from stocktwits. In Roger Levy and Lucia Specia, editors, Proceedings of the 21st Conference on Computational Natural Language Learning (CoNLL 2017), Vancouver, Canada, August 3-4, 2017, pages 301{310. Association for Computational Linguistics, 2017.
+
+Anshul Mittal. Stock prediction using twitter sentiment analysis. 2011.

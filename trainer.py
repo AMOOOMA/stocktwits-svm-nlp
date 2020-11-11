@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 import pandas as pd
 
@@ -42,7 +44,7 @@ class Trainer:
         X = preprocessing.scale(X)
 
         # Creates model and cross validation sets
-        model = svm.SVC(kernel=kernel, cache_size=4000, max_iter=5000, verbose=True)
+        model = svm.SVC(kernel=kernel, cache_size=4000, max_iter=10000, verbose=True)
         kf = KFold(n_splits=5, shuffle=True)
         kf.get_n_splits()
         model_score = []
@@ -54,7 +56,11 @@ class Trainer:
             model_score.append(model.score(X_test, y_test))
 
         # save the model locally
-        dump(model, f'{kernel}.joblib')
+        path = f'./pretrained_model/{kernel}.joblib'
+        if os.path.exists(path):
+            os.remove(path)
+        dump(model, path)
+
         return model_score
 
     def print_kernels_score(self):

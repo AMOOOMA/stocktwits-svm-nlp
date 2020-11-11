@@ -14,7 +14,13 @@ The main ideas behind our model can be divided into several steps:
 For more detailed information, checkout our [project report](https://github.com/AMOOOMA/stocktwits-svm-nlp).
 
 ### Model Performance
-TO DO
+Training using [CLS] sentence wise vector:
+```
+Kernel sigmoid scores: 0.6771027155932816 [0.6582809224318659, 0.6848357791754018, 0.6855345911949685, 0.686932215234102, 0.66993006993007]
+Kernel rbf scores: 0.7341354522486597 [0.726764500349406, 0.7365478686233403, 0.7442348008385744, 0.7239692522711391, 0.7391608391608392]
+Kernel poly scores: 0.6997467661618605 [0.7030048916841369, 0.7030048916841369, 0.6932215234102026, 0.7113906359189378, 0.6881118881118881]
+Kernel linear scores: 0.592256967351307 [0.5751222921034241, 0.6079664570230608, 0.5716282320055905, 0.6079664570230608, 0.5986013986013986]
+```
 
 ### Project usage
 To train and predict messages from stocktwits or just general texts messages from anywhere, you can import the Trainer class inside the trainer.py and feed in data with the constructor. The dataset should follow the same format as our stocktwits_labelled.csv file: {Label.value: String}, {message: String}. To provide a better understanding of the labels we used, here is the Enum class of this project:

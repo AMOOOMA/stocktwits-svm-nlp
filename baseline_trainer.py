@@ -11,10 +11,10 @@ from sklearn.feature_extraction import DictVectorizer
 from sklearn import preprocessing
 from sklearn import svm
 
-from helper import tokenize
-from helper import process_tokens
-from helper import find_index
-from helper import Label
+from support.helper import tokenize
+from support.helper import process_tokens
+from support.helper import find_index
+from support.helper import Label
 
 
 class BaselineTrainer:
@@ -110,7 +110,7 @@ class BaselineTrainer:
 
 
 def main():
-    path = "../data/stocktwits_labelled_train.csv"
+    path = "data/stocktwits_labelled_train.csv"
     with open(path, 'r', encoding='utf-8') as csv_file:
         reader = csv.reader(csv_file, delimiter=',')
         data = {

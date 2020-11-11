@@ -73,7 +73,7 @@ class Trainer:
 
 
 def main():
-    path = "../stocktwits_embeddings.csv"
+    path = "./data/stocktwits_labelled_train_bert_cls.csv"
     reader = pd.read_csv(path, header=None)
     data = {
         Label.NEG_LABEL.value: [],
@@ -81,7 +81,7 @@ def main():
     }
 
     for index, row in reader.iterrows():
-        data[row[0]].append(row[1])
+        data[row[0]].append(eval(str(row[1])))  # eval(str(message)) to convert data from string to list form
 
     print("The NEG class' messages count: ", len(data[Label.NEG_LABEL.value]))
     print("The POS class' messages count: ", len(data[Label.POS_LABEL.value]))

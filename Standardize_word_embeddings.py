@@ -1,8 +1,6 @@
-import bert_word_embedding
 import collections
 import math
 import random
-import argparse
 
 
 # averaging the embeddings between 2 words
@@ -12,7 +10,7 @@ def average_two_embeddings_vectors(a, b):
     i = 0
     for embed in a:
         z = (embed + b[i]) / 2.0
-        avg_embeddings.append[z]
+        avg_embeddings.append(z)
         i += 1
 
     return avg_embeddings
@@ -137,16 +135,18 @@ def standardize_by_averaging(tokens, embeddings, std_length=10):
 
 def main():
     # fill
-    tokens = []
-    embeddings = []
+    tokens = ["this", "is", "a", "sentence", "that", "is", "over", "ten", "embeddings",
+              "long", "and", "that", "there", "are", "punctuations", "."]
+    embeddings = [[1.2, 3.34], [2.3, 3.5], [5.6, 6.6], [5.1, 2.3], [2.3, 4.4], [3.3, 5.8], [8.8, 7.7], [1.1, 2.3],
+                  [9.9, 1.2], [2.1, 2.1], [1.0, 1.0], [1.1, 3.4], [1.2, 3.2], [3.4, 4.0], [1.1, 2.3], [1.1, 1.1]]
 
     # for testing purposes
-    print(tokens)  # before standardizing
-    print(embeddings)
+    print("before tokens: ", tokens)  # before standardizing
+    print("before embeddings: ", embeddings)
 
     tokens, embeddings = standardize_by_averaging(tokens, embeddings)
-    print(tokens)  # after standardizing
-    print(embeddings)
+    print("after tokens: ", tokens)  # after standardizing
+    print("after embeddings: ", embeddings)
     return
 
 

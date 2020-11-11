@@ -1,12 +1,8 @@
-import csv
-
-from tokenizer import Tokenizer
+from support.tokenizer import Tokenizer
 
 from nltk.stem import SnowballStemmer
 
 from enum import Enum
-
-# from bert_word_embedding import BertWordEmbedding
 
 
 class Label(Enum):
@@ -65,6 +61,11 @@ def PCA_reduce_dimensionality(X):
     """
     return X
 
+###########################################################################################################
+#  Function archived, used when needed.
+
+# import csv
+# from bert_word_embedding import BertWordEmbedding
 
 # def generate_embedding_for_path(path):
 #     """

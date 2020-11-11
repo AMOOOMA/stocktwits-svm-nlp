@@ -5,7 +5,7 @@ from transformers import BertTokenizer, BertModel
 
 from scipy.spatial.distance import cosine
 
-from helper import tokenize
+from support.helper import tokenize
 
 tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 

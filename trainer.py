@@ -5,9 +5,9 @@ from sklearn.model_selection import KFold
 from sklearn import preprocessing
 from sklearn import svm
 
-from joblib import dump, load
+from joblib import dump
 
-from helper import Label
+from support.helper import Label
 
 
 class Trainer:

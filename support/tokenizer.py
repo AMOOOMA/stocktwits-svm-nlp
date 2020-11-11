@@ -1,4 +1,4 @@
-import twokenize
+from support import twokenize
 
 
 class Tokenizer:

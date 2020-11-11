@@ -1,5 +1,3 @@
-import os
-
 import numpy as np
 import pandas as pd
 
@@ -57,8 +55,6 @@ class Trainer:
 
         # save the model locally
         path = f'./pretrained_model/{kernel}.joblib'
-        if os.path.exists(path):
-            os.remove(path)
         dump(model, path)
 
         return model_score
@@ -79,7 +75,7 @@ class Trainer:
 
 
 def main():
-    path = "./data/stocktwits_labelled_train_bert_cls.csv"
+    path = "./data/stocktwits_labelled_train_bert_average.csv"
     reader = pd.read_csv(path, header=None)
     data = {
         Label.NEG_LABEL.value: [],
@@ -87,7 +83,8 @@ def main():
     }
 
     for index, row in reader.iterrows():
-        data[row[0]].append(eval(str(row[1])))  # eval(str(message)) to convert data from string to list form
+        if str(row[1]) != "nan":
+            data[row[0]].append(eval(str(row[1])))  # eval(str(message)) to convert data from string to list form
 
     print("The NEG class' messages count: ", len(data[Label.NEG_LABEL.value]))
     print("The POS class' messages count: ", len(data[Label.POS_LABEL.value]))

@@ -149,7 +149,7 @@ def PCA_reduce_dimensionality(X):
 #         csv_file.truncate()  # clear the original file and rewrite
 #         writer = csv.writer(csv_file)
 #
-#         with open("./data/tokens.csv", 'w', newline='', encoding='utf-8') as token_csv_file:
+#         with open("./data/bert_standardized_tokens.csv", 'w', newline='', encoding='utf-8') as token_csv_file:
 #             token_csv_file.truncate()
 #             token_writer = csv.writer(token_csv_file)
 #

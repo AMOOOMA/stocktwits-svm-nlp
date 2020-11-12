@@ -30,6 +30,14 @@ Kernel poly scores: 0.7065979582960715 [0.7141858839972047, 0.7071977638015374, 
 Kernel linear scores: 0.6161605410662014 [0.6401118099231307, 0.5807127882599581, 0.6093640810621943, 0.6219426974143956, 0.6286713286713287]
 ```
 
+Training using standardized vectors without PCA:
+```
+Kernel sigmoid scores: 0.7323915570426911 [0.7242827151854444, 0.7296918767507002, 0.7331932773109243, 0.726890756302521, 0.7478991596638656]
+Kernel rbf scores: 0.7365890232930121 [0.7543736878936319, 0.7303921568627451, 0.7289915966386554, 0.7184873949579832, 0.7507002801120448]
+Kernel poly scores: 0.6930429694621025 [0.6731980405878236, 0.7044817927170869, 0.696078431372549, 0.696078431372549, 0.6953781512605042]
+Kernel linear scores: 0.6945814294927208 [0.688593421973408, 0.7030812324929971, 0.7023809523809523, 0.6834733893557423, 0.6953781512605042]
+```
+
 ### Project usage
 To train and predict messages from stocktwits or just general texts messages from anywhere, you can import the Trainer class inside the trainer.py and feed in data with the constructor. The dataset should follow the same format as our stocktwits_labelled.csv file: {Label.value: String}, {message: String}. To provide a better understanding of the labels we used, here is the Enum class of this project:
 ```Python

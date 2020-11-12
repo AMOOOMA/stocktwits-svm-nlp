@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 
+from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import KFold
 from sklearn import preprocessing
 from sklearn import svm
@@ -42,7 +43,7 @@ class Trainer:
         X = preprocessing.scale(X)
 
         # Creates model and cross validation sets
-        model = svm.SVC(kernel=kernel, cache_size=4000, max_iter=10000, verbose=True)
+        model = svm.SVC(kernel=kernel, cache_size=4000, class_weight='balanced', max_iter=10000, verbose=True)
         kf = KFold(n_splits=5, shuffle=True)
         kf.get_n_splits()
         model_score = []
@@ -73,6 +74,19 @@ class Trainer:
             kernel_score = self._SVM_train(kernel)
             print(f"Kernel {kernel} scores: {sum(kernel_score) / len(kernel_score)}", kernel_score)
 
+    def grid_search_kernel_params(self, kernel):
+        self._generate_dataset()
+
+        parameters = {'C': [0.001, 0.1, 1, 10, 100, 1000], 'gamma': [0.0001, 0.001, 0.1, 1, 10, 100]}
+        model = svm.SVC(kernel=kernel, class_weight='balanced', max_iter=10000, cache_size=4000)
+        clf = GridSearchCV(model, parameters, n_jobs=-1, verbose=10)
+        clf.n_splits_ = 5
+        clf.fit(self.X, self.y)
+
+        print(clf.best_score_)
+        print(clf.best_params_)
+        print(clf.cv_results_)
+
 
 def main():
     path = "./data/stocktwits_labelled_train_bert_average.csv"
@@ -90,7 +104,7 @@ def main():
     print("The POS class' messages count: ", len(data[Label.POS_LABEL.value]))
 
     trainer = Trainer(data)
-    trainer.print_kernels_score()
+    trainer.grid_search_kernel_params('rbf')
     
 
 if __name__ == "__main__":

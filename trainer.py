@@ -58,7 +58,7 @@ class Trainer:
         X = preprocessing.scale(X)
 
         # Creates model and cross validation sets
-        model = svm.SVC(kernel=kernel, cache_size=4000, class_weight={Label.NEG_LABEL.value: 4, Label.POS_LABEL.value: 1}, max_iter=10000, verbose=True)
+        model = svm.SVC(kernel=kernel, cache_size=4000, class_weight={Label.NEG_LABEL.value: 2, Label.POS_LABEL.value: 1}, max_iter=10000, verbose=True)
         kf = KFold(n_splits=5, shuffle=True)
         kf.get_n_splits()
         model_accuracy = []
@@ -88,7 +88,7 @@ class Trainer:
         """
         # self._generate_dataset()
 
-        kernels = ['linear', 'poly', 'rbf', 'sigmoid']
+        kernels = ['rbf']
         for kernel in kernels:
             kernel_accuracy, kernel_precision = self._SVM_train(kernel)
             print(f"Kernel {kernel} accuracy: {sum(kernel_accuracy) / len(kernel_accuracy)}", kernel_accuracy)

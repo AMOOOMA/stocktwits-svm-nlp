@@ -5,10 +5,26 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import KFold
 from sklearn import preprocessing
 from sklearn import svm
+from sklearn import decomposition
+from sklearn.metrics import precision_score
 
-from joblib import dump
+from joblib import dump, load
 
 from support.helper import Label
+from bert_word_embedding import BertWordEmbedding
+
+
+def predict_prob_with_pretrain():
+    embedding = BertWordEmbedding()
+    test_neg = "down down down down stock downs down"
+    test_pos = "This is looking pretty good."
+
+    _, neg = embedding.get_message_embedding(test_neg)
+    _, pos = embedding.get_message_embedding(test_pos)
+    X = [np.sum(np.array(neg[1:-1]), axis=0), np.sum(np.array(pos[1:-1]), axis=0)]
+
+    model = load("./pretrained_model/rbf.joblib")
+    print(model.predict(X))
 
 
 class Trainer:
@@ -46,19 +62,23 @@ class Trainer:
         model = svm.SVC(kernel=kernel, cache_size=4000, class_weight='balanced', max_iter=10000, verbose=True)
         kf = KFold(n_splits=5, shuffle=True)
         kf.get_n_splits()
-        model_score = []
+        model_accuracy = []
+        model_precision = []
 
         for train_index, test_index in kf.split(X, y):
             X_train, X_test = X[train_index], X[test_index]
             y_train, y_test = y[train_index], y[test_index]
             model.fit(X_train, y_train)
-            model_score.append(model.score(X_test, y_test))
+            model_accuracy.append(model.score(X_test, y_test))
+            model_precision.append(precision_score(y_test, model.predict(X_test), pos_label='Bullish'))
 
-        # save the model locally
-        path = f'./pretrained_model/{kernel}.joblib'
-        dump(model, path)
+        # # save the model locally
+        # path = f'./pretrained_model/{kernel}.joblib'
+        # dump(model, path)
 
-        return model_score
+        print(len(list(filter(lambda x: x == 'Bullish', model.predict(self.X)))))
+
+        return model_accuracy, model_precision
 
     def print_kernels_score(self):
         """
@@ -67,12 +87,13 @@ class Trainer:
         # and see which one is best for
         # this particular dataset/task
         """
-        self._generate_dataset()
+        # self._generate_dataset()
 
-        kernels = ['linear', 'poly', 'rbf', 'sigmoid']
+        kernels = ['rbf']
         for kernel in kernels:
-            kernel_score = self._SVM_train(kernel)
-            print(f"Kernel {kernel} scores: {sum(kernel_score) / len(kernel_score)}", kernel_score)
+            kernel_accuracy, kernel_precision = self._SVM_train(kernel)
+            print(f"Kernel {kernel} accuracy: {sum(kernel_accuracy) / len(kernel_accuracy)}", kernel_accuracy)
+            print(f"Kernel {kernel} precision: {sum(kernel_precision) / len(kernel_precision)}", kernel_precision)
 
     def grid_search_kernel_params(self, kernel):
         self._generate_dataset()
@@ -86,6 +107,14 @@ class Trainer:
         print(clf.best_score_)
         print(clf.best_params_)
         print(clf.cv_results_)
+
+    def pca(self, n_components):  # replaced later with pca in helper.py
+        self._generate_dataset()
+
+        clf = decomposition.PCA(n_components=n_components)
+        self.X = clf.fit_transform(self.X)
+
+        print(sum(clf.explained_variance_ratio_[:n_components]))
 
 
 def main():
@@ -103,10 +132,18 @@ def main():
     print("The NEG class' messages count: ", len(data[Label.NEG_LABEL.value]))
     print("The POS class' messages count: ", len(data[Label.POS_LABEL.value]))
 
-    trainer = Trainer(data)
-    trainer.grid_search_kernel_params('rbf')
+    test_list = [100, 200, 300]
+    for test in test_list:
+        trainer = Trainer(data)
+        trainer.pca(test)
+        trainer.print_kernels_score()
+
+
+def run_predict():
+    predict_prob_with_pretrain()
     
 
 if __name__ == "__main__":
     # execute only if run as a script
     main()
+    # run_predict()

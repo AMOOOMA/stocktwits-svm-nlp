@@ -34,7 +34,7 @@ def update_tok_and_embed(tokens, embeddings, index, embed2_index, averaged_embed
 
 
 # helper func
-def preprocessing_helper(tokens, embeddings, e, word_list):
+def preprocessing_helper(tokens, embeddings, e, combine_with):
     index = 0
     avg_embeddings = []
 
@@ -50,7 +50,7 @@ def preprocessing_helper(tokens, embeddings, e, word_list):
     embed2_index = 0
 
     # the words following these type of words usually have some relation syntactically and semantically
-    if word_list == "determiners" or word_list == "prepositions" or word_list == "helping_verbs":
+    if combine_with == "after":
         if last:  # check if element is the last element
             return tokens, embeddings
         embed2_index = index + 1
@@ -71,27 +71,26 @@ def preprocessing_helper(tokens, embeddings, e, word_list):
 # return updated tokens and embeddings
 def syntactic_rules_for_preprocessing(tokens, embeddings, std_length):
     # not comprehensive but a start.
-    determiners = ["a", "an", "the", "some", "each", "all"]
-    punctuations = [",", ".", "!", "?", "...", ";", "-", "~"]
-    prepositions = ["to", "for", "in", "on", "of"]
-    helping_verbs = ["have", "has", "is", "was", "were", "will"]
+    combined_after_set = {"a", "an", "the", "some", "each", "all", "to", "for", "in", "on", "of", "about", "with",
+                          "from", "at", "have", "has", "is", "are", "was", "were", "be", "been", "being", "should",
+                          "would", "will", "do", "don't", "did", "no", "not", "my", "his", "her", "your", "their",
+                          "our", "its", "whose", "go", "going", "went", "come", "came", "coming"}
+
+    combined_before_set = {"him", "her", "them", "us", ",", ".", "!", "?", "...", ";", "-", "~"}
 
     if len(tokens) > std_length:
         for e in tokens:
-            if len(tokens) == std_length:
-                return tokens, embeddings
-
-            if e in determiners:
-                tokens, embeddings = preprocessing_helper(tokens, embeddings, e, "determiners")
+            # average embeddings with the token that follows the current token
+            if e in combined_after_set:
+                tokens, embeddings = preprocessing_helper(tokens, embeddings, e, "after")
+                if len(tokens) == std_length:
+                    break
                 continue
-            if e in punctuations:
-                tokens, embeddings = preprocessing_helper(tokens, embeddings, e, "punctuations")
-                continue
-            if e in prepositions:
-                tokens, embeddings = preprocessing_helper(tokens, embeddings, e, "prepositions")
-                continue
-            if e in helping_verbs:
-                tokens, embeddings = preprocessing_helper(tokens, embeddings, e, "helping_verbs")
+            # avg embedding with the token that precedes the current token
+            elif e in combined_before_set:
+                tokens, embeddings = preprocessing_helper(tokens, embeddings, e, "before")
+                if len(tokens) == std_length:
+                    break
                 continue
 
     return tokens, embeddings
@@ -103,9 +102,13 @@ def syntactic_rules_for_preprocessing(tokens, embeddings, std_length):
 # combined tokens separated by a space even if it's punctuation. e.g. 'end' + '.' -> "end ."
 # returns the standardized tokens and embeddings lists
 # implementation: averaging some words that might go together first (e.g. "the cat", "to her")
-# then, just randomly select adjacent tokens and average those embedding vectors
+# then, just randomly select tokens and their adjacent token and average those embedding vectors
 def standardize_by_averaging(tokens, embeddings, std_length=10):
     flag = True
+
+    # so as to not change the original lists
+    tokens = tokens.copy()
+    embeddings = embeddings.copy()
 
     while len(tokens) > std_length:
         # attempt to standardize with some regards to syntactical knowledge first
@@ -143,29 +146,46 @@ def main():
                    "long", "and", "that", "there", "are", "punctuations", ".",
                    "this", "is", "a", "sentence", "that", "is", "over", "ten", "embeddings",
                    "long", "and", "that", "there", "are", "punctuations", "."]
+
+    long_tokens2 = [".", ".", "gonna", "be", "a", "long", "in", "order", "for", "the",
+                    "testing", "of", "the", "code", ".", "there", "will", "be", "some", "weird",
+                    "tokens", "hello", "this", "spellings", "to", "see", "how", "that's", "this", "will", "be", "the"]
+
     long_embeddings = [[1.2, 3.34], [2.3, 3.5], [5.6, 6.6], [5.1, 2.3], [2.3, 4.4], [3.3, 5.8], [8.8, 7.7], [1.1, 2.3],
                        [9.9, 1.2], [2.1, 2.1], [1.0, 1.0], [1.1, 3.4], [1.2, 3.2], [3.4, 4.0], [1.1, 2.3], [1.1, 1.1],
                        [1.2, 3.34], [2.3, 3.5], [5.6, 6.6], [5.1, 2.3], [2.3, 4.4], [3.3, 5.8], [8.8, 7.7], [1.1, 2.3],
                        [9.9, 1.2], [2.1, 2.1], [1.0, 1.0], [1.1, 3.4], [1.2, 3.2], [3.4, 4.0], [1.1, 2.3], [1.1, 1.1]]
 
     # for testing purposes
-    print("before tokens: ", long_tokens)  # before standardizing
-    print("before embeddings: ", long_embeddings)
+    print("test standardize_by_averaging")
+    print("before; tokens:\n", long_tokens)  # before standardizing
+    print("before; embeddings:\n", long_embeddings, "\n\n")
 
     tokens, embeddings = standardize_by_averaging(long_tokens, long_embeddings)
-    print("after tokens: ", tokens)  # after standardizing
-    print("after embeddings: ", embeddings)
+    print("after; tokens:\n", tokens)  # after standardizing
+    print("after; embeddings:\n", embeddings, "\n\n")
 
+    # test standardize_by_averaging #2, uses the same embeddings as test #1
+    print("test standardize_by_averaging#2")
+    print("before; tokens:\n", long_tokens2)  # before standardizing
+    print("before; embeddings:\n", long_embeddings, "\n\n")
+
+    tokens, embeddings = standardize_by_averaging(long_tokens2, long_embeddings)
+    print("after; tokens:\n", tokens)  # after standardizing
+    print("after; embeddings:\n", embeddings, "\n\n")
+
+    # standardize by duplicating
     short_tokens = ["This", "is", "looking", "Bullish"]
     short_embeddings = [[1.2, 3.34], [2.3, 3.5], [5.6, 6.6], [5.1, 2.3]]
 
     # for testing purposes
-    print("before tokens: ", short_tokens)  # before standardizing
-    print("before embeddings: ", short_embeddings)
+    print("test standardize_by_duplicating")
+    print("before; tokens:\n", short_tokens)  # before standardizing
+    print("before embeddings:\n", short_embeddings, "\n\n")
 
     tokens, embeddings = standardize_by_duplicating(short_tokens, short_embeddings)
-    print("after tokens: ", tokens)  # after standardizing
-    print("after embeddings: ", embeddings)
+    print("after; tokens:\n", tokens)  # after standardizing
+    print("after; embeddings:\n", embeddings, "\n\n")
 
     return
 

@@ -72,11 +72,11 @@ class Trainer:
             model_accuracy.append(model.score(X_test, y_test))
             model_precision.append(precision_score(y_test, model.predict(X_test), pos_label='Bullish'))
 
-        # # save the model locally
+        # save the model locally
         # path = f'./pretrained_model/{kernel}.joblib'
         # dump(model, path)
 
-        print(len(list(filter(lambda x: x == 'Bullish', model.predict(self.X)))))
+        print(len(list(filter(lambda x: x == 'Bullish', model.predict(self.X)))))  # double check the prediction label ratio
 
         return model_accuracy, model_precision
 
@@ -87,9 +87,9 @@ class Trainer:
         # and see which one is best for
         # this particular dataset/task
         """
-        # self._generate_dataset()
+        self._generate_dataset()
 
-        kernels = ['rbf']
+        kernels = ['linear', 'poly', 'rbf', 'sigmoid']
         for kernel in kernels:
             kernel_accuracy, kernel_precision = self._SVM_train(kernel)
             print(f"Kernel {kernel} accuracy: {sum(kernel_accuracy) / len(kernel_accuracy)}", kernel_accuracy)
@@ -132,11 +132,8 @@ def main():
     print("The NEG class' messages count: ", len(data[Label.NEG_LABEL.value]))
     print("The POS class' messages count: ", len(data[Label.POS_LABEL.value]))
 
-    test_list = [100, 200, 300]
-    for test in test_list:
-        trainer = Trainer(data)
-        trainer.pca(test)
-        trainer.print_kernels_score()
+    trainer = Trainer(data)
+    trainer.print_kernels_score()
 
 
 def run_predict():

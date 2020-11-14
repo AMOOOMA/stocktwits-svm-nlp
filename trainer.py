@@ -16,13 +16,12 @@ from bert_word_embedding import BertWordEmbedding
 
 def predict_prob_with_pretrain():
     embedding = BertWordEmbedding()
-    test_neg = "down down down down stock downs down"
+    test_neg = "buffet is selling!"
     test_pos = "This is looking pretty good."
 
     _, neg = embedding.get_message_embedding(test_neg)
     _, pos = embedding.get_message_embedding(test_pos)
-    X = [np.sum(np.array(neg[1:-1]), axis=0), np.sum(np.array(pos[1:-1]), axis=0)]
-
+    X = np.array([np.sum(np.array(neg[1:-1]), axis=0), np.sum(np.array(pos[1:-1]), axis=0)])
     model = load("./pretrained_model/rbf.joblib")
     print(model.predict(X))
 
@@ -59,7 +58,7 @@ class Trainer:
         X = preprocessing.scale(X)
 
         # Creates model and cross validation sets
-        model = svm.SVC(kernel=kernel, cache_size=4000, class_weight='balanced', max_iter=10000, verbose=True)
+        model = svm.SVC(kernel=kernel, cache_size=4000, class_weight={Label.NEG_LABEL.value: 4, Label.POS_LABEL.value: 1}, max_iter=10000, verbose=True)
         kf = KFold(n_splits=5, shuffle=True)
         kf.get_n_splits()
         model_accuracy = []
@@ -87,7 +86,7 @@ class Trainer:
         # and see which one is best for
         # this particular dataset/task
         """
-        self._generate_dataset()
+        # self._generate_dataset()
 
         kernels = ['linear', 'poly', 'rbf', 'sigmoid']
         for kernel in kernels:
@@ -133,6 +132,7 @@ def main():
     print("The POS class' messages count: ", len(data[Label.POS_LABEL.value]))
 
     trainer = Trainer(data)
+    trainer.pca(200)
     trainer.print_kernels_score()
 
 

@@ -134,13 +134,9 @@ def main():
     trainer = Trainer(data)
     trainer.pca(200)
     trainer.print_kernels_score()
-
-
-def run_predict():
-    predict_prob_with_pretrain()
     
 
 if __name__ == "__main__":
     # execute only if run as a script
     main()
-    # run_predict()
+    # predict_prob_with_pretrain()

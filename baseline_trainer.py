@@ -8,7 +8,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import GaussianNB
 from sklearn.model_selection import KFold
 from sklearn.feature_extraction import DictVectorizer
-from sklearn.metrics import precision_score
+from sklearn.metrics import f1_score
 from sklearn import preprocessing
 from sklearn import svm
 
@@ -74,16 +74,16 @@ class BaselineTrainer:
         kf = KFold(n_splits=5, shuffle=True)
         kf.get_n_splits()
         model_accuracy = []
-        model_precision = []
+        model_f1 = []
 
         for train_index, test_index in kf.split(X, y):
             X_train, X_test = X[train_index], X[test_index]
             y_train, y_test = y[train_index], y[test_index]
             model.fit(X_train, y_train)
             model_accuracy.append(model.score(X_test, y_test))
-            model_precision.append(precision_score(y_test, model.predict(X_test), pos_label='Bullish'))
+            model_f1.append(f1_score(y_test, model.predict(X_test), pos_label='Bullish'))
 
-        return model_accuracy, model_precision
+        return model_accuracy, model_f1
 
     def print_bow_score(self):
         self._fill_bow()
@@ -96,19 +96,20 @@ class BaselineTrainer:
         print("Tokens size: ", sum(self.bow.values()))
         print("Unique cash tags: ", len(self.cash_tags))
 
-        log_reg_model = LogisticRegression(solver='sag', random_state=0, max_iter=100, n_jobs=-1, verbose=1, class_weight='balanced')
-        log_reg_accuracy, log_reg_precision = self._bow_train(log_reg_model)
+        log_reg_model = LogisticRegression(solver='sag', random_state=0, max_iter=100,
+                                           n_jobs=-1, verbose=1, class_weight={Label.NEG_LABEL.value: 2, Label.POS_LABEL.value: 1})
+        log_reg_accuracy, log_reg_f1 = self._bow_train(log_reg_model)
         print("Log Reg accuracy: ", sum(log_reg_accuracy) / len(log_reg_accuracy))
         print(log_reg_accuracy)
-        print("Log Reg precision: ", sum(log_reg_precision) / len(log_reg_precision))
-        print(log_reg_precision)
+        print("Log Reg f1 score: ", sum(log_reg_f1) / len(log_reg_f1))
+        print(log_reg_f1)
 
         naive_bayes_model = GaussianNB()
-        naive_bayes_accuracy, naive_bayes_precision = self._bow_train(naive_bayes_model)
+        naive_bayes_accuracy, naive_bayes_f1 = self._bow_train(naive_bayes_model)
         print("Naive Bayes accuracy: ", sum(naive_bayes_accuracy) / len(naive_bayes_accuracy))
         print(naive_bayes_accuracy)
-        print("Naive Bayes precision: ", sum(naive_bayes_precision) / len(naive_bayes_precision))
-        print(naive_bayes_precision)
+        print("Naive Bayes f1 score: ", sum(naive_bayes_f1) / len(naive_bayes_f1))
+        print(naive_bayes_f1)
 
         # svm_model = svm.SVC(kernel='rbf', cache_size=4000, max_iter=5000, verbose=True)  # performs similar to LR, disabled for speed
         # svm_accuracy, svm_precision = self._bow_train(svm_model)

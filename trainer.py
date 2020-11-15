@@ -6,7 +6,7 @@ from sklearn.model_selection import KFold
 from sklearn import preprocessing
 from sklearn import svm
 from sklearn import decomposition
-from sklearn.metrics import precision_score
+from sklearn.metrics import f1_score
 
 from joblib import dump, load
 
@@ -62,14 +62,14 @@ class Trainer:
         kf = KFold(n_splits=5, shuffle=True)
         kf.get_n_splits()
         model_accuracy = []
-        model_precision = []
+        model_f1 = []
 
         for train_index, test_index in kf.split(X, y):
             X_train, X_test = X[train_index], X[test_index]
             y_train, y_test = y[train_index], y[test_index]
             model.fit(X_train, y_train)
             model_accuracy.append(model.score(X_test, y_test))
-            model_precision.append(precision_score(y_test, model.predict(X_test), pos_label='Bullish'))
+            model_f1.append(f1_score(y_test, model.predict(X_test), pos_label='Bullish'))
 
         # save the model locally
         # path = f'./pretrained_model/{kernel}.joblib'
@@ -77,7 +77,7 @@ class Trainer:
 
         print(len(list(filter(lambda x: x == 'Bullish', model.predict(self.X)))))  # double check the prediction label ratio
 
-        return model_accuracy, model_precision
+        return model_accuracy, model_f1
 
     def print_kernels_score(self):
         """
@@ -90,9 +90,9 @@ class Trainer:
 
         kernels = ['rbf']
         for kernel in kernels:
-            kernel_accuracy, kernel_precision = self._SVM_train(kernel)
+            kernel_accuracy, kernel_f1 = self._SVM_train(kernel)
             print(f"Kernel {kernel} accuracy: {sum(kernel_accuracy) / len(kernel_accuracy)}", kernel_accuracy)
-            print(f"Kernel {kernel} precision: {sum(kernel_precision) / len(kernel_precision)}", kernel_precision)
+            print(f"Kernel {kernel} f1 score: {sum(kernel_f1) / len(kernel_f1)}", kernel_f1)
 
     def grid_search_kernel_params(self, kernel):
         self._generate_dataset()

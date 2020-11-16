@@ -7,23 +7,28 @@ from sklearn import preprocessing
 from sklearn import svm
 from sklearn import decomposition
 from sklearn.metrics import f1_score
+from sklearn.metrics import make_scorer
 
 from joblib import dump, load
 
 from support.helper import Label
 from bert_word_embedding import BertWordEmbedding
+from data_scraper import parse_messages_json
+import requests
 
 
-def predict_prob_with_pretrain():
+def predict_prob_with_pretrain(messages):
     embedding = BertWordEmbedding()
-    test_neg = "buffet is selling!"
-    test_pos = "This is looking pretty good."
 
-    _, neg = embedding.get_message_embedding(test_neg)
-    _, pos = embedding.get_message_embedding(test_pos)
-    X = np.array([np.sum(np.array(neg[1:-1]), axis=0), np.sum(np.array(pos[1:-1]), axis=0)])
+    X = []
+
+    for message in messages:
+        _, message_embeddings = embedding.get_message_embedding(message)
+        X.append(list(np.sum(np.array(message_embeddings[1:-1]), axis=0)))
+
     model = load("./pretrained_model/rbf.joblib")
-    print(model.predict(X))
+    print(messages)
+    print(model.predict(np.array(X)))
 
 
 class Trainer:
@@ -58,7 +63,8 @@ class Trainer:
         X = preprocessing.scale(X)
 
         # Creates model and cross validation sets
-        model = svm.SVC(kernel=kernel, cache_size=4000, class_weight={Label.NEG_LABEL.value: 2, Label.POS_LABEL.value: 1}, max_iter=10000, verbose=True)
+        model = svm.SVC(kernel=kernel, cache_size=4000,
+                        class_weight={Label.NEG_LABEL.value: 2, Label.POS_LABEL.value: 1}, max_iter=10000, verbose=True)
         kf = KFold(n_splits=5, shuffle=True)
         kf.get_n_splits()
         model_accuracy = []
@@ -75,7 +81,8 @@ class Trainer:
         # path = f'./pretrained_model/{kernel}.joblib'
         # dump(model, path)
 
-        print(len(list(filter(lambda x: x == 'Bullish', model.predict(self.X)))))  # double check the prediction label ratio
+        print(len(
+            list(filter(lambda x: x == 'Bullish', model.predict(self.X)))))  # double check the prediction label ratio
 
         return model_accuracy, model_f1
 
@@ -97,9 +104,11 @@ class Trainer:
     def grid_search_kernel_params(self, kernel):
         self._generate_dataset()
 
-        parameters = {'C': [0.001, 0.1, 1, 10, 100, 1000], 'gamma': [0.0001, 0.001, 0.1, 1, 10, 100]}
-        model = svm.SVC(kernel=kernel, class_weight='balanced', max_iter=10000, cache_size=4000)
-        clf = GridSearchCV(model, parameters, n_jobs=-1, verbose=10)
+        parameters = {'C': [1, 10, 100], 'gamma': [0.0001, 0.001, 0.1, 1, 10, 100]}
+        model = svm.SVC(kernel=kernel, class_weight={Label.NEG_LABEL.value: 2, Label.POS_LABEL.value: 1},
+                        max_iter=25000, cache_size=4000)
+        f1_scorer = make_scorer(f1_score, pos_label=Label.POS_LABEL.value)
+        clf = GridSearchCV(model, parameters, n_jobs=-1, verbose=10, scoring=f1_scorer)
         clf.n_splits_ = 5
         clf.fit(self.X, self.y)
 
@@ -112,8 +121,6 @@ class Trainer:
 
         clf = decomposition.PCA(n_components=n_components)
         self.X = clf.fit_transform(self.X)
-
-        print(sum(clf.explained_variance_ratio_[:n_components]))
 
 
 def main():
@@ -134,9 +141,36 @@ def main():
     trainer = Trainer(data)
     trainer.pca(200)
     trainer.print_kernels_score()
-    
+
+
+def predict_real_data(symbol):
+    api_url = "https://api.stocktwits.com/api/2/streams/symbol/"  # + {id}.json
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36',
+        'referer': 'https://google.com',
+    }
+
+    messages = []
+
+    response = requests.get(api_url + f"{symbol}.json", headers)
+    if response.status_code == 200:
+        print("GET messages/posts success")
+        messages = messages + parse_messages_json(response.content)
+    else:
+        print(f"GET request from messages failed: {response.status_code} {response.reason}")
+
+    predict_prob_with_pretrain(map(lambda x: list(x.items())[0][1], messages))
+
 
 if __name__ == "__main__":
     # execute only if run as a script
     main()
-    # predict_prob_with_pretrain()
+
+    # test_messages = ["going short",
+    #                  "falling out of bed",
+    #                  "No we’re not Green we are red",
+    #                  "This stock is going down, and I’ll tell you why.",
+    #                  "Not too bad, we will see what happens"]
+    # predict_prob_with_pretrain(test_messages)
+
+    # predict_real_data()

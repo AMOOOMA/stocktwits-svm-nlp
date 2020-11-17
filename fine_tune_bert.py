@@ -1,3 +1,4 @@
+import os
 import torch
 import random
 import numpy as np
@@ -231,6 +232,15 @@ class StocktwitsBERT:
 
         print("")
         print("Training complete!")
+
+        output_dir = './pretrained_model/fine_tune_bert/'
+
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+
+        print("Saving model to %s" % output_dir)
+        model_to_save = model.module if hasattr(model, 'module') else model
+        model_to_save.save_pretrained(output_dir)
 
 
 def main():

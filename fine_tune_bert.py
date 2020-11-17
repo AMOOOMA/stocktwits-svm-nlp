@@ -1,4 +1,6 @@
 import torch
+import random
+import numpy as np
 import pandas as pd
 from transformers import BertTokenizer
 
@@ -6,11 +8,15 @@ from torch.utils.data import TensorDataset, random_split
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 
 from transformers import BertForSequenceClassification, AdamW, BertConfig
+from transformers import get_linear_schedule_with_warmup
 
 from support.helper import tokenize
 from support.helper import Label
 
 tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+batch_size = 32
+epochs = 4
+seed_val = 42
 
 
 def tokenize_transform(messages, labels):
@@ -40,13 +46,19 @@ def tokenize_transform(messages, labels):
     return input_ids, attention_masks, labels
 
 
+def flat_accuracy(prediction, labels):
+    prediction_flat = np.argmax(prediction, axis=1).flatten()
+    labels_flat = labels.flatten()
+    return np.sum(prediction_flat == labels_flat) / len(labels_flat)
+
+
 class StocktwitsBERT:
     def __init__(self, data):
         self.data = data
-        self.train_dataset = []
-        self.val_dataset = []
+        self.train_data = None
+        self.val_data = None
 
-    def generate_dataset(self):
+    def _generate_dataset(self):
         messages = []
         labels = []
 
@@ -64,11 +76,42 @@ class StocktwitsBERT:
         val_size = len(dataset) - train_size
 
         # Divide the dataset by randomly selecting samples.
-        self.train_dataset, self.val_dataset = random_split(dataset, [train_size, val_size])
+        train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
 
         print('{:>5,} training samples'.format(train_size))
         print('{:>5,} validation samples'.format(val_size))
 
+        self.train_data = DataLoader(
+            train_dataset,
+            sampler=RandomSampler(train_dataset),
+            batch_size=batch_size
+        )
+
+        self.val_data = DataLoader(
+            val_dataset,
+            sampler=SequentialSampler(val_dataset),
+            batch_size=batch_size
+        )
+
+    def train(self):
+        model = BertForSequenceClassification.from_pretrained(
+            "bert-base-uncased",
+            num_labels=2,
+            output_attentions=False,
+            output_hidden_states=False,
+        )
+
+        model.cuda()
+        optimizer = AdamW(model.parameters(), lr=2e-5, eps=1e-8)
+        total_steps = len(self.train_data) * epochs
+        scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=0, num_training_steps=total_steps)
+
+        random.seed(seed_val)
+        np.random.seed(seed_val)
+        torch.manual_seed(seed_val)
+        torch.cuda.manual_seed_all(seed_val)
+
+        # TO DO
 
 def main():
     path = "./data/stocktwits_labelled_train_bert_average.csv"

@@ -19,9 +19,13 @@ from sklearn.metrics import f1_score
 import time
 import datetime
 
+from data_scraper import parse_messages_json
+import requests
+
 # References and work credits: https://mccormickml.com/2019/07/22/BERT-fine-tuning/
 
 tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+output_dir = './pretrained_model/fine_tune_bert/'
 batch_size = 32
 epochs = 4
 seed_val = 42
@@ -68,8 +72,8 @@ def tokenize_transform(messages, labels):
     return input_ids, attention_masks, new_labels
 
 
-def flat_accuracy(prediction, labels):
-    prediction_flat = np.argmax(prediction, axis=1).flatten()
+def flat_accuracy(predictions, labels):
+    prediction_flat = np.argmax(predictions, axis=1).flatten()
     labels_flat = labels.flatten()
     return np.sum(prediction_flat == labels_flat) / len(labels_flat), f1_score(prediction_flat, labels_flat)  # use f1 score
 
@@ -233,8 +237,6 @@ class StocktwitsBERT:
         print("")
         print("Training complete!")
 
-        output_dir = './pretrained_model/fine_tune_bert/'
-
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
 
@@ -262,5 +264,53 @@ def main():
     bert.train()
 
 
+def predict_real_data(symbol):
+    api_url = "https://api.stocktwits.com/api/2/streams/symbol/"  # + {id}.json
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36',
+        'referer': 'https://google.com',
+    }
+
+    messages = []
+
+    response = requests.get(api_url + f"{symbol}.json", headers)
+    if response.status_code == 200:
+        print("GET messages/posts success")
+        messages = messages + parse_messages_json(response.content)
+    else:
+        print(f"GET request from messages failed: {response.status_code} {response.reason}")
+
+    messages = list(map(lambda x: list(x.items())[0][1], messages))
+    input_ids, attention_masks, labels = tokenize_transform(messages, len(messages) * [1])
+    test_dataset = TensorDataset(input_ids, attention_masks, labels)
+    test_data = DataLoader(
+        test_dataset,
+        sampler=SequentialSampler(test_dataset),
+        batch_size=batch_size
+    )
+
+    model = BertForSequenceClassification.from_pretrained(output_dir)
+    model.to(device)
+    model.eval()
+
+    predictions = []
+
+    for batch in test_data:
+        batch = tuple(t.to(device) for t in batch)
+        b_input_ids, b_input_mask, b_labels = batch
+
+        with torch.no_grad():
+            outputs = model(b_input_ids, token_type_ids=None, attention_mask=b_input_mask)
+
+        logits = outputs[0]
+        logits = logits.detach().cpu().numpy()
+        predictions.append(logits)
+
+    predictions = np.argmax(predictions[0], axis=1).flatten()
+    for i in range(len(messages)):
+        print(('Bullish' if predictions[i] == 1 else 'Bearish', messages[i]))
+
+
 if __name__ == "__main__":
-    main()
+    # main()
+    predict_real_data('AAPL')

@@ -7,11 +7,13 @@ from transformers import BertTokenizer
 from torch.utils.data import TensorDataset, random_split
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 
-from transformers import BertForSequenceClassification, AdamW, BertConfig
+from transformers import BertForSequenceClassification, AdamW
 from transformers import get_linear_schedule_with_warmup
 
 from support.helper import tokenize
 from support.helper import Label
+
+from sklearn.metrics import f1_score
 
 import time
 import datetime
@@ -68,7 +70,7 @@ def tokenize_transform(messages, labels):
 def flat_accuracy(prediction, labels):
     prediction_flat = np.argmax(prediction, axis=1).flatten()
     labels_flat = labels.flatten()
-    return np.sum(prediction_flat == labels_flat) / len(labels_flat)
+    return np.sum(prediction_flat == labels_flat) / len(labels_flat), f1_score(prediction_flat, labels_flat)  # use f1 score
 
 
 def format_time(elapsed):
@@ -185,6 +187,7 @@ class StocktwitsBERT:
             t0 = time.time()
             model.eval()
             total_eval_accuracy = 0
+            total_eval_f1 = 0
             total_eval_loss = 0
 
             for batch in self.val_data:
@@ -201,10 +204,14 @@ class StocktwitsBERT:
                 total_eval_loss += loss.item()
                 logits = logits.detach().cpu().numpy()
                 label_ids = b_labels.to('cpu').numpy()
-                total_eval_accuracy += flat_accuracy(logits, label_ids)
+                accuracy, f1 = flat_accuracy(logits, label_ids)
+                total_eval_accuracy += accuracy
+                total_eval_f1 += f1
 
             avg_val_accuracy = total_eval_accuracy / len(self.val_data)
+            avg_val_f1 = total_eval_f1 / len(self.val_data)
             print("  Accuracy: {0:.2f}".format(avg_val_accuracy))
+            print("  Accuracy: {0:.2f}".format(avg_val_f1))
             avg_val_loss = total_eval_loss / len(self.val_data)
             validation_time = format_time(time.time() - t0)
 

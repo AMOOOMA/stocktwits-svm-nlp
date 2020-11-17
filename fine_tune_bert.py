@@ -22,14 +22,19 @@ seed_val = 42
 def tokenize_transform(messages, labels):
     input_ids = []
     attention_masks = []
+    new_labels = []
 
-    for message in messages:
-        _, tokens = tokenize(message)  # use our custom tokenizer
+    for i in range(len(messages)):
+        _, tokens = tokenize(messages[i])  # use our custom tokenizer
+
+        if len(tokens) == 0:
+            continue
 
         encoded = tokenizer.encode_plus(  # encoded the pre tokenized message
             text=tokens,
-            max_length=200,
-            padding=True,
+            max_length=128,
+            padding='max_length',
+            truncation=True,
             add_special_tokens=True,
             is_split_into_words=True,
             return_attention_mask=True,
@@ -38,12 +43,13 @@ def tokenize_transform(messages, labels):
 
         input_ids.append(encoded['input_ids'])
         attention_masks.append(encoded['attention_mask'])
+        new_labels.append(labels[i])
 
     input_ids = torch.cat(input_ids, dim=0)
     attention_masks = torch.cat(attention_masks, dim=0)
-    labels = torch.tensor(labels)
+    new_labels = torch.tensor(new_labels)
 
-    return input_ids, attention_masks, labels
+    return input_ids, attention_masks, new_labels
 
 
 def flat_accuracy(prediction, labels):
@@ -63,9 +69,9 @@ class StocktwitsBERT:
         labels = []
 
         for label in self.data:
-            for message in messages:
+            for message in self.data[label]:
                 messages.append(message)
-                labels.append(label)
+                labels.append(1 if label == Label.POS_LABEL.value else 0)
 
         input_ids, attention_masks, labels = tokenize_transform(messages, labels)
 
@@ -94,6 +100,8 @@ class StocktwitsBERT:
         )
 
     def train(self):
+        self._generate_dataset()
+
         model = BertForSequenceClassification.from_pretrained(
             "bert-base-uncased",
             num_labels=2,
@@ -113,8 +121,9 @@ class StocktwitsBERT:
 
         # TO DO
 
+
 def main():
-    path = "./data/stocktwits_labelled_train_bert_average.csv"
+    path = "./data/stocktwits_labelled_train.csv"
     reader = pd.read_csv(path, header=None)
     data = {
         Label.NEG_LABEL.value: [],
@@ -123,12 +132,13 @@ def main():
 
     for index, row in reader.iterrows():
         if str(row[1]) != "nan":
-            data[row[0]].append(eval(str(row[1])))  # eval(str(message)) to convert data from string to list form
+            data[row[0]].append(row[1])
 
     print("The NEG class' messages count: ", len(data[Label.NEG_LABEL.value]))
     print("The POS class' messages count: ", len(data[Label.POS_LABEL.value]))
 
     bert = StocktwitsBERT(data)
+    bert.train()
 
 
 if __name__ == "__main__":

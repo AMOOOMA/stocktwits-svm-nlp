@@ -307,8 +307,14 @@ def predict_real_data(symbol):
         predictions.append(logits)
 
     predictions = np.argmax(predictions[0], axis=1).flatten()
-    for i in range(len(messages)):
-        print(('Bullish' if predictions[i] == 1 else 'Bearish', messages[i]))
+    index = 0
+    for message in messages:
+        _, tokens = tokenize(message)
+        if len(tokens) == 0:  # skip messages with no content
+            continue
+
+        print(('Bullish' if predictions[index] == 1 else 'Bearish', message))
+        index += 1
 
 
 if __name__ == "__main__":

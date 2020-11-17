@@ -13,10 +13,24 @@ from transformers import get_linear_schedule_with_warmup
 from support.helper import tokenize
 from support.helper import Label
 
+import time
+import datetime
+
+# References and work credits: https://mccormickml.com/2019/07/22/BERT-fine-tuning/
+
 tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 batch_size = 32
 epochs = 4
 seed_val = 42
+
+if torch.cuda.is_available():
+
+    device = torch.device("cuda")
+    print('There are %d GPU(s) available.' % torch.cuda.device_count())
+    print('We will use the GPU:', torch.cuda.get_device_name(0))
+else:
+    print('No GPU available, using the CPU instead.')
+    device = torch.device("cpu")
 
 
 def tokenize_transform(messages, labels):
@@ -56,6 +70,11 @@ def flat_accuracy(prediction, labels):
     prediction_flat = np.argmax(prediction, axis=1).flatten()
     labels_flat = labels.flatten()
     return np.sum(prediction_flat == labels_flat) / len(labels_flat)
+
+
+def format_time(elapsed):
+    elapsed_rounded = int(round(elapsed))
+    return str(datetime.timedelta(seconds=elapsed_rounded))
 
 
 class StocktwitsBERT:
@@ -119,7 +138,93 @@ class StocktwitsBERT:
         torch.manual_seed(seed_val)
         torch.cuda.manual_seed_all(seed_val)
 
-        # TO DO
+        training_stats = []
+
+        for epoch_i in range(0, epochs):
+            print("")
+            print('======== Epoch {:} / {:} ========'.format(epoch_i + 1, epochs))
+            print('Training...')
+
+            t0 = time.time()
+            total_train_loss = 0
+            model.train()
+
+            for step, batch in enumerate(self.train_data):
+
+                if step % 40 == 0 and not step == 0:
+                    elapsed = format_time(time.time() - t0)
+
+                    print('  Batch {:>5,}  of  {:>5,}.    Elapsed: {:}.'.format(step, len(self.train_data), elapsed))
+
+                b_input_ids = batch[0].to(device)
+                b_input_mask = batch[1].to(device)
+                b_labels = batch[2].to(device)
+
+                model.zero_grad()
+
+                loss, logits = model(b_input_ids,
+                                     token_type_ids=None,
+                                     attention_mask=b_input_mask,
+                                     labels=b_labels)
+
+                total_train_loss += loss.item()
+                loss.backward()
+                torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+                optimizer.step()
+                scheduler.step()
+
+            avg_train_loss = total_train_loss / len(self.train_data)
+            training_time = format_time(time.time() - t0)
+
+            print("")
+            print("  Average training loss: {0:.2f}".format(avg_train_loss))
+            print("  Training epcoh took: {:}".format(training_time))
+
+            print("")
+            print("Running Validation...")
+
+            t0 = time.time()
+            model.eval()
+            total_eval_accuracy = 0
+            total_eval_loss = 0
+
+            for batch in self.val_data:
+                b_input_ids = batch[0].to(device)
+                b_input_mask = batch[1].to(device)
+                b_labels = batch[2].to(device)
+
+                with torch.no_grad():
+                    (loss, logits) = model(b_input_ids,
+                                           token_type_ids=None,
+                                           attention_mask=b_input_mask,
+                                           labels=b_labels)
+
+                total_eval_loss += loss.item()
+                logits = logits.detach().cpu().numpy()
+                label_ids = b_labels.to('cpu').numpy()
+                total_eval_accuracy += flat_accuracy(logits, label_ids)
+
+            avg_val_accuracy = total_eval_accuracy / len(self.val_data)
+            print("  Accuracy: {0:.2f}".format(avg_val_accuracy))
+            avg_val_loss = total_eval_loss / len(self.val_data)
+            validation_time = format_time(time.time() - t0)
+
+            print("  Validation Loss: {0:.2f}".format(avg_val_loss))
+            print("  Validation took: {:}".format(validation_time))
+
+            training_stats.append(
+                {
+                    'epoch': epoch_i + 1,
+                    'Training Loss': avg_train_loss,
+                    'Valid. Loss': avg_val_loss,
+                    'Valid. Accur.': avg_val_accuracy,
+                    'Training Time': training_time,
+                    'Validation Time': validation_time
+                }
+            )
+
+        print("")
+        print("Training complete!")
 
 
 def main():

@@ -211,7 +211,7 @@ class StocktwitsBERT:
             avg_val_accuracy = total_eval_accuracy / len(self.val_data)
             avg_val_f1 = total_eval_f1 / len(self.val_data)
             print("  Accuracy: {0:.2f}".format(avg_val_accuracy))
-            print("  Accuracy: {0:.2f}".format(avg_val_f1))
+            print("  F1 score: {0:.2f}".format(avg_val_f1))
             avg_val_loss = total_eval_loss / len(self.val_data)
             validation_time = format_time(time.time() - t0)
 

@@ -5,13 +5,13 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import KFold
 from sklearn import preprocessing
 from sklearn import svm
-from sklearn import decomposition
 from sklearn.metrics import f1_score
 from sklearn.metrics import make_scorer
 
 from joblib import dump, load
 
 from support.helper import Label
+from support.helper import PCA_reduce_dimensionality
 from bert_word_embedding import BertWordEmbedding
 from data_scraper import parse_messages_json
 import requests
@@ -38,7 +38,7 @@ class Trainer:
         self.X = []
         self.y = []
 
-    def _generate_dataset(self):
+    def _generate_dataset(self, pca=True):
         """
         # generate X and y using
         # self.data, format in
@@ -48,6 +48,8 @@ class Trainer:
             for vector in self.data[label]:
                 self.X.append(vector)
                 self.y.append(label)
+
+        self.X = PCA_reduce_dimensionality(self.X) if pca else self.X  # do PCA as default
 
     def _SVM_train(self, kernel):
         """
@@ -93,15 +95,20 @@ class Trainer:
         # and see which one is best for
         # this particular dataset/task
         """
-        # self._generate_dataset()
+        self._generate_dataset()
 
-        kernels = ['rbf']
+        kernels = ['linear', 'poly', 'rbf', 'sigmoid']
         for kernel in kernels:
             kernel_accuracy, kernel_f1 = self._SVM_train(kernel)
             print(f"Kernel {kernel} accuracy: {sum(kernel_accuracy) / len(kernel_accuracy)}", kernel_accuracy)
             print(f"Kernel {kernel} f1 score: {sum(kernel_f1) / len(kernel_f1)}", kernel_f1)
 
     def grid_search_kernel_params(self, kernel):
+        """
+        # Use sklearn GridSearchCV
+        # to find the best params
+        # for training SVM with kernel
+        """
         self._generate_dataset()
 
         parameters = {'C': [1, 10, 100], 'gamma': [0.0001, 0.001, 0.1, 1, 10, 100]}
@@ -115,12 +122,6 @@ class Trainer:
         print(clf.best_score_)
         print(clf.best_params_)
         print(clf.cv_results_)
-
-    def pca(self, n_components):  # replaced later with pca in helper.py
-        self._generate_dataset()
-
-        clf = decomposition.PCA(n_components=n_components)
-        self.X = clf.fit_transform(self.X)
 
 
 def main():
@@ -139,7 +140,6 @@ def main():
     print("The POS class' messages count: ", len(data[Label.POS_LABEL.value]))
 
     trainer = Trainer(data)
-    trainer.pca(200)
     trainer.print_kernels_score()
 
 
@@ -166,11 +166,11 @@ if __name__ == "__main__":
     # execute only if run as a script
     main()
 
-    # test_messages = ["going short",
-    #                  "falling out of bed",
-    #                  "No we’re not Green we are red",
-    #                  "This stock is going down, and I’ll tell you why.",
-    #                  "Not too bad, we will see what happens"]
-    # predict_prob_with_pretrain(test_messages)
+    test_messages = ["going short",
+                     "falling out of bed",
+                     "No we’re not Green we are red",
+                     "This stock is going down, and I’ll tell you why.",
+                     "Not too bad, we will see what happens"]
+    predict_prob_with_pretrain(test_messages)
 
-    # predict_real_data()
+    predict_real_data('AAPL')

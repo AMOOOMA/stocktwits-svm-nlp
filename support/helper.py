@@ -1,6 +1,7 @@
 from support.tokenizer import Tokenizer
 
 from nltk.stem import SnowballStemmer
+from sklearn import decomposition
 
 from enum import Enum
 
@@ -51,7 +52,7 @@ def find_index(token, low, high, features):  # binary search to find element ind
     return -1
 
 
-def PCA_reduce_dimensionality(X):
+def PCA_reduce_dimensionality(X, n_components=200):
     """
     # Perform a PCA analysis
     # on the dataset X and
@@ -59,7 +60,8 @@ def PCA_reduce_dimensionality(X):
     # dimensionality for faster
     # training time
     """
-    return X
+    clf = decomposition.PCA(n_components=n_components)
+    return clf.fit_transform(X)
 
 ########################################################################################################################
 #  Function archived, used when needed.

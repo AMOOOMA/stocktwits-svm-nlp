@@ -215,8 +215,8 @@ class StocktwitsBERT:
 
             avg_val_accuracy = total_eval_accuracy / len(self.val_data)
             avg_val_f1 = total_eval_f1 / len(self.val_data)
-            print("  Accuracy: {0:.2f}".format(avg_val_accuracy))
-            print("  F1 score: {0:.2f}".format(avg_val_f1))
+            print("  Accuracy: {0:f}".format(avg_val_accuracy))
+            print("  F1 score: {0:f}".format(avg_val_f1))
             avg_val_loss = total_eval_loss / len(self.val_data)
             validation_time = format_time(time.time() - t0)
 
@@ -237,12 +237,12 @@ class StocktwitsBERT:
         print("")
         print("Training complete!")
 
-        if not os.path.exists(output_dir):
-            os.makedirs(output_dir)
-
-        print("Saving model to %s" % output_dir)
-        model_to_save = model.module if hasattr(model, 'module') else model
-        model_to_save.save_pretrained(output_dir)
+        # if not os.path.exists(output_dir):
+        #     os.makedirs(output_dir)
+        #
+        # print("Saving model to %s" % output_dir)
+        # model_to_save = model.module if hasattr(model, 'module') else model
+        # model_to_save.save_pretrained(output_dir)
 
 
 def main():
@@ -318,5 +318,5 @@ def predict_real_data(symbol):
 
 
 if __name__ == "__main__":
-    # main()
+    main()
     predict_real_data('AAPL')

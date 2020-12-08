@@ -26,13 +26,15 @@ Kernel rbf f1 score: 0.821851831591843 [0.8140133951571354, 0.8216818642350557, 
 ```
 
 ### Project usage
-To train and predict messages from stocktwits or just general texts messages from anywhere, you can import the Trainer class inside the trainer.py and feed in data with the constructor. The dataset should follow the same format as our stocktwits_labelled.csv file: {Label.value: String}, {message: String}. To provide a better understanding of the labels we used, here is the Enum class of this project:
+To train and predict messages from stocktwits or just general texts messages from anywhere, the first step is to format the dataset for BERT processing. The dataset should follow the same format as our stocktwits_labelled.csv file: {Label.value: String}, {message: String}. To provide a better understanding of the labels we used, here is the Enum class of this project:
 ```Python
 class Label(Enum):
     NO_LABEL = "NO_LABEL"
     NEG_LABEL = "Bearish"
     POS_LABEL = "Bullish"
 ```
+
+Then, use the class BertWordEmbedding from `bert_word_embedding.py` to generate the word embeddings for the dataset. From that, you can choose to do average sum (frozen input) or use our standardization algorithm to convert the dataset into trainable forms. Once the data is ready, use the file `trainer.py` to do the heavy-lifting by changing the dataset path to your desire location and train. More information/help can be found in the comments inside the file. 
 
 If you want to just train the model yourself and see the tracing messages, feel free to run command `python trainer.py`.
 
